@@ -1,4 +1,4 @@
-# FlowMate - 전문적인 인력관리 시스템
+# HRMS_kjh - 전문적인 인력관리 시스템
 
 전문적인 기업 환경을 위한 블랙&화이트 톤의 인력관리 및 근태관리 시스템입니다.
 
@@ -26,7 +26,7 @@ python main.py
 http://localhost:8000
 ```
 
-## 🔑 테스트 계정
+## 테스트 계정
 
 ### 관리자
 - **ID**: admin
@@ -102,7 +102,7 @@ python main.py
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
-## 🔧 문제 해결
+## 문제 해결
 
 ### 로그인이 안 될 때
 1. `setup_database.py` 실행하여 데이터베이스 재생성
@@ -205,5 +205,5 @@ export KAKAO_MAP_API_KEY="your_kakao_api_key_here"
 MIT License
 
 ---
-
+문의 : spellrain@naver.com
 **© 2025 k-j-hyun & JJPartners. All rights reserved.**

@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS 직원용</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#212529">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="HRMS">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: #212529;
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .user-info {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            padding: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+        }
+        
+        .status-card {
+            text-align: center;
+            background: #495057;
+            color: white;
+        }
+        
+        .status-indicator {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .status-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .status-details {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .location-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+        }
+        
+        .location-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .location-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+        }
+        
+        .location-icon.active {
+            background: #28a745;
+        }
+        
+        .coordinates {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #495057;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #343a40;
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #1e7e34;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .btn-info:hover {
+            background: #5a6268;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .work-time {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .time-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .time-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        
+        .time-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .work-schedule {
+            margin-bottom: 1rem;
+        }
+
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 8px;
+            background: #f8f9fa;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #007bff;
+        }
+
+        .schedule-item.completed {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .schedule-item.working {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .schedule-info {
+            flex: 1;
+        }
+
+        .schedule-title {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 0.25rem;
+        }
+
+        .schedule-details {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .schedule-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .activity-log {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .activity-icon.check-in {
+            background: #28a745;
+        }
+        
+        .activity-icon.check-out {
+            background: #dc3545;
+        }
+        
+        .activity-icon.location {
+            background: #17a2b8;
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-text {
+            font-size: 0.9rem;
+            color: #495057;
+            margin-bottom: 0.25rem;
+        }
+        
+        .activity-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        
+        .location-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .location-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            font-size: 0.9rem;
+            color: #495057;
+            font-weight: 500;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        
+        .alert {
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        
+        /* 버튼 그룹 */
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        /* 실시간 업데이트 인디케이터 */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+        }
+        
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: #28a745;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 50% auto;
+            padding: 1.5rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(-50%);
+        }
+        
+        .modal-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .modal-body {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="title">HRMS</div>
+            <div class="user-info">
+                <span id="employeeName">직원</span>
+                <button onclick="logout()" style="background: none; border: none; color: white; padding: 0.25rem 0.5rem;">로그아웃</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 현재 상태 카드 -->
+        <div class="card status-card">
+            <div class="status-indicator" id="statusIndicator">⏰</div>
+            <div class="status-text" id="statusText">출근 대기중</div>
+            <div class="status-details" id="statusDetails">출근 시간이 되면 체크인하세요</div>
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                실시간 업데이트
+            </div>
+        </div>
+
+        <!-- 위치 정보 카드 -->
+        <div class="card location-card">
+            <div class="location-status">
+                <div class="location-icon" id="locationIcon"></div>
+                <span id="locationStatus">위치 확인 중...</span>
+            </div>
+            <div id="locationDetails">GPS 위치를 확인하고 있습니다.</div>
+            <div class="coordinates" id="coordinates">좌표: 확인 중</div>
+        </div>
+
+        <!-- 선택된 근무지 정보 -->
+        <div class="card" id="selectedLocationCard" style="display: none;">
+            <div class="section-title">선택된 근무지</div>
+            <div id="selectedLocationInfo">
+                <div class="location-detail">
+                    <div class="detail-label">근무지:</div>
+                    <div class="detail-value" id="selectedJobTitle">-</div>
+                </div>
+                <div class="location-detail">
+                    <div class="detail-label">회사:</div>
+                    <div class="detail-value" id="selectedCompanyName">-</div>
+                </div>
+                <div class="location-detail">
+                    <div class="detail-label">주소:</div>
+                    <div class="detail-value" id="selectedWorkAddress">-</div>
+                </div>
+                <div class="location-detail">
+                    <div class="detail-label">근무시간:</div>
+                    <div class="detail-value" id="selectedWorkHours">-</div>
+                </div>
+                <div class="location-detail">
+                    <div class="detail-label">시급:</div>
+                    <div class="detail-value" id="selectedSalary">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주요 액션 버튼들 -->
+        <div class="card">
+            <button class="btn btn-primary" id="mainActionBtn" onclick="performMainAction()">
+                위치 확인
+            </button>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="refreshLocation()">위치 새로고침</button>
+                <button class="btn btn-secondary" onclick="viewHistory()">출입 기록</button>
+            </div>
+            <div class="btn-group" style="margin-top: 1rem;">
+                <a href="/jobs" class="btn btn-info">채용 게시판</a>
+                <a href="/my-applications" class="btn btn-info">나의 신청</a>
+            </div>
+        </div>
+
+        <!-- 근무 시간 정보 -->
+        <div class="card">
+            <h3 style="margin-bottom: 1rem; font-size: 1rem; color: #495057;">금일 근무 정보</h3>
+            <div class="work-time">
+                <div class="time-item">
+                    <div class="time-label">출근 시간</div>
+                    <div class="time-value" id="checkInTime">미출근</div>
+                </div>
+                <div class="time-item">
+                    <div class="time-label">근무 시간</div>
+                    <div class="time-value" id="workDuration">0시간</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 근무 일정 및 완료 목록 -->
+        <div class="card">
+            <h3 style="margin-bottom: 1rem; font-size: 1rem; color: #495057;">근무 일정 & 완료 목록</h3>
+            <div class="work-schedule" id="workSchedule">
+                <div class="loading">근무 일정을 불러오는 중...</div>
+            </div>
+        </div>
+
+        <!-- 최근 활동 로그 -->
+        <div class="card">
+            <h3 style="margin-bottom: 1rem; font-size: 1rem; color: #495057;">최근 활동</h3>
+            <div class="activity-log" id="activityLog">
+                <div class="loading">활동 기록을 불러오는 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 확인 모달 -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">확인</div>
+            <div class="modal-body" id="modalMessage">작업을 수행하시겠습니까?</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+                <button class="btn btn-primary" id="confirmBtn" onclick="confirmAction()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2025 k-j-hyun & JJPartners. All rights reserved.
+    </div>
+
+    <script>
+        let currentEmployee = null;
+        let currentLocation = null;
+        let workStatus = 'waiting'; // waiting, working, completed
+        let trackingEnabled = false;
+        let trackingInterval = null;
+        let pendingAction = null;
+
+        // 페이지 로드 시 초기화
+        window.onload = function() {
+            checkAuth();
+            initializeApp();
+            loadSelectedLocationInfo(); // 선택된 위치 정보 로드
+            loadWorkSchedule(); // 근무 일정 로드
+        };
+
+        // 인증 확인
+        function checkAuth() {
+            const token = localStorage.getItem('employee_token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // 토큰 검증 및 직원 정보 로드
+            fetch('/api/auth/verify', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Token invalid');
+                }
+                return response.json();
+            })
+            .then(user => {
+                currentEmployee = user;
+                document.getElementById('employeeName').textContent = user.full_name;
+                loadEmployeeData();
+            })
+            .catch(error => {
+                console.error('Auth error:', error);
+                localStorage.removeItem('employee_token');
+                window.location.href = '/login';
+            });
+        }
+
+        // 앱 초기화
+        function initializeApp() {
+            // GPS 위치 권한 요청
+            if (navigator.geolocation) {
+                getCurrentLocation();
+                
+                // 자동 추적 시작
+                if ('permissions' in navigator) {
+                    navigator.permissions.query({name: 'geolocation'}).then(function(result) {
+                        if (result.state === 'granted') {
+                            startLocationTracking();
+                        }
+                    });
+                }
+            } else {
+                showAlert('이 기기는 위치 서비스를 지원하지 않습니다.', 'warning');
+            }
+
+            // 주기적 데이터 업데이트
+            setInterval(updateWorkStatus, 30000); // 30초마다
+            setInterval(loadRecentActivity, 60000); // 1분마다
+        }
+
+        // 직원 데이터 로드
+        async function loadEmployeeData() {
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch('/api/employee/status', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                updateStatusDisplay(data);
+                loadRecentActivity();
+                
+            } catch (error) {
+                console.error('Employee data load error:', error);
+                showAlert('데이터를 불러올 수 없습니다.', 'warning');
+            }
+        }
+
+        // 현재 위치 가져오기
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                document.getElementById('locationStatus').textContent = '위치 서비스 지원 안함';
+                return;
+            }
+
+            document.getElementById('locationStatus').textContent = '위치 확인 중...';
+            
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 30000
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    currentLocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        timestamp: new Date()
+                    };
+                    
+                    updateLocationDisplay();
+                    checkGeofenceStatus();
+                },
+                function(error) {
+                    handleLocationError(error);
+                },
+                options
+            );
+        }
+
+        // 위치 표시 업데이트
+        function updateLocationDisplay() {
+            if (!currentLocation) return;
+
+            const locationIcon = document.getElementById('locationIcon');
+            const locationStatus = document.getElementById('locationStatus');
+            const locationDetails = document.getElementById('locationDetails');
+            const coordinates = document.getElementById('coordinates');
+
+            locationIcon.classList.add('active');
+            locationStatus.textContent = '위치 확인됨';
+            
+            if (currentLocation.accuracy <= 50) {
+                locationDetails.textContent = `정확한 위치 (오차: ${Math.round(currentLocation.accuracy)}m)`;
+            } else {
+                locationDetails.textContent = `위치 확인됨 (오차: ${Math.round(currentLocation.accuracy)}m)`;
+            }
+            
+            coordinates.textContent = 
+                `좌표: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
+            
+            // 위치가 확인되면 즉시 지오펜스 체크
+            checkGeofenceStatus();
+        }
+
+        // 위치 오류 처리
+        function handleLocationError(error) {
+            const locationStatus = document.getElementById('locationStatus');
+            const locationDetails = document.getElementById('locationDetails');
+            
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    locationStatus.textContent = '위치 권한 거부됨';
+                    locationDetails.textContent = '설정에서 위치 권한을 허용해주세요.';
+                    showAlert('위치 권한이 필요합니다. 브라우저 설정에서 위치 권한을 허용해주세요.', 'warning');
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    locationStatus.textContent = '위치 정보 없음';
+                    locationDetails.textContent = 'GPS 신호를 받을 수 없습니다.';
+                    break;
+                case error.TIMEOUT:
+                    locationStatus.textContent = '위치 확인 시간 초과';
+                    locationDetails.textContent = '위치 확인에 시간이 너무 오래 걸립니다.';
+                    break;
+                default:
+                    locationStatus.textContent = '위치 확인 실패';
+                    locationDetails.textContent = '알 수 없는 오류가 발생했습니다.';
+                    break;
+            }
+        }
+
+        // 지오펜스 상태 확인
+        async function checkGeofenceStatus() {
+            if (!currentLocation || !currentEmployee) return;
+
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch('/api/employee/check-location', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        latitude: currentLocation.latitude,
+                        longitude: currentLocation.longitude,
+                        accuracy: currentLocation.accuracy
+                    })
+                });
+
+                const result = await response.json();
+                updateMainActionButton(result);
+                updateLocationDetails(result);
+                
+            } catch (error) {
+                console.error('Geofence check error:', error);
+            }
+        }
+
+        // 위치 상세 정보 업데이트
+        function updateLocationDetails(locationResult) {
+            const locationDetails = document.getElementById('locationDetails');
+            const coordinates = document.getElementById('coordinates');
+            
+            if (locationResult.sites_distances && locationResult.sites_distances.length > 0) {
+                // 가장 가까운 근무지 찾기
+                const closestSite = locationResult.sites_distances.reduce((prev, current) => {
+                    return (prev.distance < current.distance) ? prev : current;
+                });
+                
+                if (closestSite.inside_geofence) {
+                    locationDetails.innerHTML = `√ <strong>${closestSite.site_name}</strong> 근무지 내 (${closestSite.distance}m)`;
+                } else {
+                    locationDetails.innerHTML = ` <strong>${closestSite.site_name}</strong>까지 ${closestSite.distance}m`;
+                }
+                
+                // 좌표 정보에 근무지 좌표 표시
+                coordinates.innerHTML = `
+                    <div>현재 위치: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}</div>
+                    <div>근무지까지: ${closestSite.distance}m</div>
+                    <div style="font-size: 0.7rem; margin-top: 0.25rem; color: #868e96;">
+                        근무지 좌표: ${closestSite.latitude.toFixed(6)}, ${closestSite.longitude.toFixed(6)}
+                    </div>
+                `;
+            } else {
+                // 할당된 근무지가 없는 경우에도 현재 위치는 표시
+                locationDetails.innerHTML = ` 할당된 근무지가 없습니다. <a href="/my-applications" style="color: #007bff; text-decoration: underline;">신청 현황 확인</a>`;
+                coordinates.textContent = `좌표: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
+            }
+        }
+
+        // 메인 액션 버튼 업데이트
+        function updateMainActionButton(locationResult) {
+            const mainBtn = document.getElementById('mainActionBtn');
+            
+            if (locationResult.sites_distances && locationResult.sites_distances.length > 0) {
+                // 가장 가까운 근무지 찾기
+                const closestSite = locationResult.sites_distances.reduce((prev, current) => {
+                    return (prev.distance < current.distance) ? prev : current;
+                });
+                
+                if (closestSite.inside_geofence) {
+                    if (workStatus === 'waiting') {
+                        mainBtn.textContent = `${closestSite.site_name}에서 출근하기`;
+                        mainBtn.className = 'btn btn-success';
+                        mainBtn.disabled = false;
+                    } else if (workStatus === 'working') {
+                        mainBtn.textContent = '퇴근하기';
+                        mainBtn.className = 'btn btn-danger';
+                        mainBtn.disabled = false;
+                    } else {
+                        mainBtn.textContent = '근무 완료';
+                        mainBtn.className = 'btn btn-secondary';
+                        mainBtn.disabled = true;
+                    }
+                } else {
+                    mainBtn.textContent = `${closestSite.site_name}까지 ${closestSite.distance}m`;
+                    mainBtn.className = 'btn btn-secondary';
+                    mainBtn.disabled = true;
+                }
+            } else {
+                // 할당된 근무지가 없는 경우
+                mainBtn.textContent = '일자리 신청하기';
+                mainBtn.className = 'btn btn-info';
+                mainBtn.disabled = false;
+                mainBtn.onclick = function() {
+                    window.location.href = '/jobs';
+                };
+            }
+        }
+
+        // 상태 표시 업데이트
+        function updateStatusDisplay(statusData) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const statusDetails = document.getElementById('statusDetails');
+            const checkInTime = document.getElementById('checkInTime');
+            const workDuration = document.getElementById('workDuration');
+
+            workStatus = statusData.status;
+
+            // 할당된 근무지 정보 표시
+            let workLocationInfo = '';
+            if (statusData.assigned_sites && statusData.assigned_sites.length > 0) {
+                const siteNames = statusData.assigned_sites.map(site => site.name).join(', ');
+                workLocationInfo = ` (할당된 근무지: ${siteNames})`;
+            } else {
+                workLocationInfo = ' (근무지 없음 - 일자리 신청 필요)';
+            }
+
+            switch (statusData.status) {
+                case 'waiting':
+                    indicator.textContent = '⏰';
+                    statusText.textContent = '출근 대기중';
+                    if (statusData.assigned_sites && statusData.assigned_sites.length > 0) {
+                        statusDetails.textContent = '근무지에 도착하면 출근 체크를 하세요' + workLocationInfo;
+                    } else {
+                        statusDetails.textContent = '먼저 일자리를 신청해주세요. 승인 후 근무지가 설정됩니다.';
+                    }
+                    break;
+                case 'working':
+                    indicator.textContent = '💼';
+                    statusText.textContent = '근무중';
+                    statusDetails.textContent = `${statusData.attendance.site_name || '근무지'}에서 근무 중`;
+                    if (statusData.attendance.check_in_time) {
+                        checkInTime.textContent = new Date(statusData.attendance.check_in_time).toLocaleTimeString('ko-KR');
+                        workDuration.textContent = calculateWorkDuration(statusData.attendance.check_in_time);
+                    }
+                    break;
+                case 'completed':
+                    indicator.textContent = '√';
+                    statusText.textContent = '근무 완료';
+                    statusDetails.textContent = '오늘 근무가 완료되었습니다';
+                    if (statusData.attendance.check_in_time) {
+                        checkInTime.textContent = new Date(statusData.attendance.check_in_time).toLocaleTimeString('ko-KR');
+                        workDuration.textContent = calculateWorkDuration(
+                            statusData.attendance.check_in_time, 
+                            statusData.attendance.check_out_time
+                        );
+                    }
+                    break;
+            }
+        }
+
+        // 근무 시간 계산
+        function calculateWorkDuration(startTime, endTime = null) {
+            const start = new Date(startTime);
+            const end = endTime ? new Date(endTime) : new Date();
+            const diff = end - start;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            return `${hours}시간 ${minutes}분`;
+        }
+
+        // 메인 액션 수행
+        function performMainAction() {
+            if (!currentLocation) {
+                showAlert('위치 정보가 필요합니다. 위치를 먼저 확인해주세요.', 'warning');
+                getCurrentLocation();
+                return;
+            }
+
+            if (workStatus === 'waiting') {
+                showConfirmModal('출근 확인', '출근 체크를 하시겠습니까?', 'checkIn');
+            } else if (workStatus === 'working') {
+                showConfirmModal('퇴근 확인', '퇴근 체크를 하시겠습니까?', 'checkOut');
+            }
+        }
+
+        // 확인 모달 표시
+        function showConfirmModal(title, message, action) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('confirmModal').style.display = 'block';
+            pendingAction = action;
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            pendingAction = null;
+        }
+
+        // 확인 액션 수행
+        async function confirmAction() {
+            if (!pendingAction) return;
+
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch(`/api/employee/${pendingAction}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        latitude: currentLocation.latitude,
+                        longitude: currentLocation.longitude,
+                        accuracy: currentLocation.accuracy
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert(result.message, 'success');
+                    loadEmployeeData(); // 상태 새로고침
+                } else {
+                    showAlert(result.detail || '오류가 발생했습니다.', 'warning');
+                }
+
+            } catch (error) {
+                console.error('Action error:', error);
+                showAlert('서버 연결에 실패했습니다.', 'warning');
+            }
+
+            closeModal();
+        }
+
+        // 위치 추적 시작
+        function startLocationTracking() {
+            if (trackingEnabled) return;
+
+            trackingEnabled = true;
+            trackingInterval = setInterval(() => {
+                getCurrentLocation();
+            }, 300000); // 5분마다
+        }
+
+        // 위치 추적 중지
+        function stopLocationTracking() {
+            trackingEnabled = false;
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+                trackingInterval = null;
+            }
+        }
+
+        // 위치 새로고침
+        function refreshLocation() {
+            getCurrentLocation();
+            loadSelectedLocationInfo(); // 선택된 위치 정보도 새로고침
+        }
+        
+        // 선택된 위치 정보 로드
+        function loadSelectedLocationInfo() {
+            const selectedLocationInfo = localStorage.getItem('selectedLocationInfo');
+            const selectedLocationCard = document.getElementById('selectedLocationCard');
+            
+            if (selectedLocationInfo) {
+                try {
+                    const locationData = JSON.parse(selectedLocationInfo);
+                    
+                    // 각 정보를 화면에 표시
+                    document.getElementById('selectedJobTitle').textContent = locationData.jobTitle || '-';
+                    document.getElementById('selectedCompanyName').textContent = locationData.companyName || '-';
+                    document.getElementById('selectedWorkAddress').textContent = locationData.workAddress || '-';
+                    document.getElementById('selectedWorkHours').textContent = locationData.workHours || '-';
+                    document.getElementById('selectedSalary').textContent = locationData.salary || '-';
+                    
+                    // 카드 표시
+                    selectedLocationCard.style.display = 'block';
+                } catch (error) {
+                    console.error('Error parsing selected location info:', error);
+                    selectedLocationCard.style.display = 'none';
+                }
+            } else {
+                // 선택된 위치가 없으면 카드 숨기기
+                selectedLocationCard.style.display = 'none';
+            }
+        }
+
+        // 근무 일정 로드
+        async function loadWorkSchedule() {
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch('/api/my-applications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    displayWorkSchedule(data.applications);
+                } else {
+                    document.getElementById('workSchedule').innerHTML = '<div class="loading">일정 정보를 불러올 수 없습니다.</div>';
+                }
+                
+            } catch (error) {
+                console.error('Work schedule load error:', error);
+                document.getElementById('workSchedule').innerHTML = '<div class="loading">일정 정보를 불러올 수 없습니다.</div>';
+            }
+        }
+
+        // 근무 일정 표시
+        function displayWorkSchedule(applications) {
+            const workSchedule = document.getElementById('workSchedule');
+            
+            // 숨겨진 항목 필터링
+            const filteredApps = filterHiddenItems(applications);
+            const relevantApps = filteredApps.filter(app => 
+                app.status === 'approved' || app.status === 'working' || app.status === 'completed'
+            );
+            
+            if (relevantApps.length === 0) {
+                workSchedule.innerHTML = '<div class="loading">예정된 근무가 없습니다.</div>';
+                return;
+            }
+
+            let html = '';
+            relevantApps.forEach(app => {
+                const statusClass = app.status === 'completed' ? 'completed' : 
+                                  app.status === 'working' ? 'working' : '';
+                const statusText = app.status === 'completed' ? '완료' :
+                                  app.status === 'working' ? '근무중' : '예정';
+                const workDate = app.work_start_date ? 
+                    new Date(app.work_start_date).toLocaleDateString('ko-KR') : '미정';
+                
+                html += `
+                    <div class="schedule-item ${statusClass}">
+                        <div class="schedule-info">
+                            <div class="schedule-title">${app.job_post.title}</div>
+                            <div class="schedule-details">
+                                ${app.job_post.company_name} · ${workDate} · ${statusText}
+                                ${app.job_post.work_hours ? ` · ${app.job_post.work_hours}` : ''}
+                            </div>
+                        </div>
+                        <div class="schedule-actions">
+                            <button class="btn-small btn-delete" onclick="deleteWorkItem(${app.id})">삭제</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            workSchedule.innerHTML = html;
+        }
+
+        // 근무 항목 삭제 (프론트엔드에서만)
+        function deleteWorkItem(applicationId) {
+            if (!confirm('이 항목을 목록에서 제거하시겠습니까? (실제 신청은 취소되지 않습니다)')) {
+                return;
+            }
+            
+            // 로컬 스토리지에 숨김 목록 저장
+            let hiddenItems = JSON.parse(localStorage.getItem('hiddenWorkItems') || '[]');
+            if (!hiddenItems.includes(applicationId)) {
+                hiddenItems.push(applicationId);
+                localStorage.setItem('hiddenWorkItems', JSON.stringify(hiddenItems));
+            }
+            
+            // 화면 새로고침
+            loadWorkSchedule();
+        }
+
+        // 숨겨진 항목 필터링
+        function filterHiddenItems(applications) {
+            const hiddenItems = JSON.parse(localStorage.getItem('hiddenWorkItems') || '[]');
+            return applications.filter(app => !hiddenItems.includes(app.id));
+        }
+
+        // 최근 활동 로드
+        async function loadRecentActivity() {
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch('/api/employee/recent-activity', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const activities = await response.json();
+                displayActivities(activities);
+                
+            } catch (error) {
+                console.error('Recent activity load error:', error);
+            }
+        }
+
+        // 활동 표시
+        function displayActivities(activities) {
+            const activityLog = document.getElementById('activityLog');
+            
+            if (activities.length === 0) {
+                activityLog.innerHTML = '<div class="loading">활동 기록이 없습니다.</div>';
+                return;
+            }
+
+            let html = '';
+            activities.forEach(activity => {
+                const time = new Date(activity.timestamp).toLocaleString('ko-KR');
+                const iconClass = activity.event_type === 'check_in' ? 'check-in' :
+                                 activity.event_type === 'check_out' ? 'check-out' : 'location';
+                
+                html += `
+                    <div class="activity-item">
+                        <div class="activity-icon ${iconClass}"></div>
+                        <div class="activity-content">
+                            <div class="activity-text">${getActivityText(activity)}</div>
+                            <div class="activity-time">${time}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            activityLog.innerHTML = html;
+        }
+
+        // 활동 텍스트 생성
+        function getActivityText(activity) {
+            switch (activity.event_type) {
+                case 'check_in':
+                    return `${activity.site_name}에서 출근`;
+                case 'check_out':
+                    return `${activity.site_name}에서 퇴근`;
+                case 'geofence_enter':
+                    return `${activity.site_name} 구역 진입`;
+                case 'geofence_exit':
+                    return `${activity.site_name} 구역 이탈`;
+                default:
+                    return '위치 업데이트';
+            }
+        }
+
+        // 출입 기록 보기
+        function viewHistory() {
+            window.open('/employee/history', '_self');
+        }
+
+        // 근무 상태 업데이트
+        function updateWorkStatus() {
+            if (currentEmployee) {
+                loadEmployeeData();
+            }
+        }
+
+        // 알림 표시
+        function showAlert(message, type = 'info') {
+            // 간단한 알림 구현
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '80px';
+            alertDiv.style.left = '1rem';
+            alertDiv.style.right = '1rem';
+            alertDiv.style.zIndex = '1001';
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(alertDiv);
+            }, 5000);
+        }
+
+        // 로그아웃
+        function logout() {
+            localStorage.removeItem('employee_token');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>

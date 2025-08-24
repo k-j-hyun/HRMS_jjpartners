@@ -1,0 +1,2669 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS 관리자 대시보드</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#212529">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="HRMS">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #343a40;
+        }
+        
+        .header {
+            background: #212529;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f8f9fa;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            border-left: 4px solid;
+        }
+        
+        .stat-card.primary { border-left-color: #007bff; }
+        .stat-card.success { border-left-color: #28a745; }
+        .stat-card.warning { border-left-color: #ffc107; }
+        .stat-card.danger { border-left-color: #dc3545; }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #495057;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #343a40;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-working {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-absent {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-content h3 {
+            margin: 0 0 1.5rem 0;
+            color: #212529;
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+        
+        .modal-buttons button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .modal-buttons button[type="button"] {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .modal-buttons button[type="button"]:hover {
+            background: #5a6268;
+        }
+        
+        .status-late {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 1rem;
+        }
+        
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6c757d;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab.active {
+            color: #495057;
+            border-bottom: 2px solid #495057;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .search-box {
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            width: 300px;
+        }
+        
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .location-info {
+            background: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">HRMS 관리자</div>
+            <div class="user-info">
+                <span id="adminName">관리자</span>
+                <button class="btn btn-primary" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 통계 카드 -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-number" id="totalEmployees">-</div>
+                <div class="stat-label">전체 직원</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-number" id="presentToday">-</div>
+                <div class="stat-label">금일 출근</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-number" id="lateToday">-</div>
+                <div class="stat-label">지각</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-number" id="absentToday">-</div>
+                <div class="stat-label">결근</div>
+            </div>
+        </div>
+
+        <!-- 메인 대시보드 -->
+        <div class="dashboard-grid">
+            <!-- 실시간 현황 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">실시간 근무 현황</div>
+                    <button class="btn btn-primary" onclick="refreshData()">새로고침</button>
+                </div>
+                <div id="currentStatus">로딩 중...</div>
+            </div>
+
+            <!-- 최근 출입 기록 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">최근 출입 기록</div>
+                </div>
+                <div id="recentActivity">로딩 중...</div>
+            </div>
+        </div>
+
+        <!-- 탭 메뉴 -->
+        <div class="card">
+        <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showTab('employees')">직원 관리</button>
+        <button class="nav-tab" onclick="showTab('jobs')">공고 관리</button>
+        <button class="nav-tab" onclick="showTab('attendance')">출근 기록</button>
+        <button class="nav-tab" onclick="showTab('violations')">위반 사항</button>
+            <button class="nav-tab" onclick="showTab('reports')">리포트</button>
+            </div>
+
+            <!-- 직원 관리 탭 -->
+            <div id="employees" class="tab-content active">
+                <div class="toolbar">
+                    <input type="text" class="search-box" placeholder="직원 검색..." id="employeeSearch">
+                    <button class="btn btn-primary" onclick="showAddEmployee()">직원 추가</button>
+                    <button class="btn" style="background: #6c757d; color: white; margin-left: 0.5rem;" onclick="showDepartmentManagement()">부서 관리</button>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>직원번호</th>
+                            <th>이름</th>
+                            <th>부서</th>
+                            <th>직급</th>
+                            <th>상태</th>
+                            <th>최근 위치</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeList">
+                        <tr>
+                            <td colspan="7">로딩 중...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 공고 관리 탭 -->
+            <div id="jobs" class="tab-content">
+                <div class="toolbar">
+                    <input type="text" class="search-box" placeholder="공고 검색..." id="jobSearch">
+                    <button class="btn btn-primary" onclick="showCreateJobModal()">공고 등록</button>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>제목</th>
+                            <th>회사명</th>
+                            <th>등록일</th>
+                            <th>지원자/승인</th>
+                            <th>모집인원</th>
+                            <th>승인방식</th>
+                            <th>상태</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobList">
+                        <tr>
+                            <td colspan="8">로딩 중...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 출근 기록 탭 -->
+            <div id="attendance" class="tab-content">
+                <div class="toolbar">
+                    <input type="date" id="attendanceDate" class="search-box">
+                    <select id="departmentFilter" class="search-box">
+                        <option value="">전체 부서</option>
+                    </select>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>직원</th>
+                            <th>출근시간</th>
+                            <th>퇴근시간</th>
+                            <th>근무시간</th>
+                            <th>위치</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceList">
+                        <tr>
+                            <td colspan="6">로딩 중...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 위반 사항 탭 -->
+            <div id="violations" class="tab-content">
+                <div class="alert alert-warning">
+                    <strong>주의:</strong> 위반 사항은 자동으로 감지되며, 검토 후 처리하시기 바랍니다.
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>일시</th>
+                            <th>직원</th>
+                            <th>위반 유형</th>
+                            <th>심각도</th>
+                            <th>상태</th>
+                            <th>처리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="violationsList">
+                        <tr>
+                            <td colspan="6">로딩 중...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 리포트 탭 -->
+            <div id="reports" class="tab-content">
+                <div class="toolbar">
+                    <select class="search-box" id="reportType">
+                        <option value="daily">일간 리포트</option>
+                        <option value="weekly">주간 리포트</option>
+                        <option value="monthly">월간 리포트</option>
+                        <option value="violations">위반 사항 리포트</option>
+                    </select>
+                    <input type="date" id="reportDate" class="search-box" title="날짜 선택">
+                    <button class="btn btn-primary" onclick="generateReport()">리포트 생성</button>
+                    <button class="btn btn-primary" onclick="exportReport()" style="background: #28a745;">CSV 내보내기</button>
+                    <button class="btn btn-primary" onclick="detectViolations()" style="background: #dc3545;">위반사항 감지</button>
+                </div>
+                
+                <div id="reportResult" style="margin-top: 1rem;">
+                    <div class="alert" style="padding: 1rem; background: #e9ecef; border-radius: 5px; color: #495057;">
+                        <strong>사용법:</strong>
+                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                            <li>리포트 유형을 선택하고 날짜를 설정한 후 "리포트 생성" 버튼을 클릭하세요.</li>
+                            <li>"CSV 내보내기"로 엑셀에서 열 수 있는 파일을 다운로드할 수 있습니다.</li>
+                            <li>"위반사항 감지"는 최근 24시간 내 위반사항을 자동으로 찾아 등록합니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 공고 등록 모달 -->
+    <div class="modal" id="createJobModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; margin: 0; position: relative; background: white; border-radius: 8px; padding: 2rem;">
+            <div class="modal-header" style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; text-align: center;">새 채용 공고 등록</div>
+            <form id="createJobForm">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">제목 *</label>
+                    <input type="text" class="form-input" name="title" required style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">회사명 *</label>
+                    <input type="text" class="form-input" name="company_name" required style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">업무 설명 *</label>
+                    <textarea class="form-textarea" name="description" required style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; min-height: 100px; resize: vertical;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">자격 요건</label>
+                    <textarea class="form-textarea" name="requirements" style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; min-height: 80px; resize: vertical;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">급여</label>
+                    <input type="text" class="form-input" name="salary" placeholder="예: 시급 10,000원" style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">근무 시간 *</label>
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.5rem; align-items: center;">
+                        <select class="form-input" name="start_time" id="start_time" required style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                            <option value="">시작 시간</option>
+                            <option value="00:00">00:00</option>
+                            <option value="01:00">01:00</option>
+                            <option value="02:00">02:00</option>
+                            <option value="03:00">03:00</option>
+                            <option value="04:00">04:00</option>
+                            <option value="05:00">05:00</option>
+                            <option value="06:00">06:00</option>
+                            <option value="07:00">07:00</option>
+                            <option value="08:00">08:00</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="12:00">12:00</option>
+                            <option value="13:00">13:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                            <option value="20:00">20:00</option>
+                            <option value="21:00">21:00</option>
+                            <option value="22:00">22:00</option>
+                            <option value="23:00">23:00</option>
+                            <option value="시간협의">시간협의</option>
+                        </select>
+                        <span style="text-align: center; font-weight: bold;">~</span>
+                        <select class="form-input" name="end_time" id="end_time" required style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                            <option value="">종료 시간</option>
+                            <option value="00:00">00:00</option>
+                            <option value="01:00">01:00</option>
+                            <option value="02:00">02:00</option>
+                            <option value="03:00">03:00</option>
+                            <option value="04:00">04:00</option>
+                            <option value="05:00">05:00</option>
+                            <option value="06:00">06:00</option>
+                            <option value="07:00">07:00</option>
+                            <option value="08:00">08:00</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="12:00">12:00</option>
+                            <option value="13:00">13:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                            <option value="20:00">20:00</option>
+                            <option value="21:00">21:00</option>
+                            <option value="22:00">22:00</option>
+                            <option value="23:00">23:00</option>
+                            <option value="시간협의">시간협의</option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="work_hours" id="work_hours_combined">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">근무 기간 *</label>
+                    <select class="form-input" name="work_period_select" id="work_period_select" onchange="toggleCustomPeriod()" required style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; margin-bottom: 0.5rem;">
+                        <option value="">근무 기간을 선택하세요</option>
+                        <option value="1일">1일</option>
+                        <option value="2일">2일</option>
+                        <option value="3일">3일</option>
+                        <option value="1주일">1주일</option>
+                        <option value="2주일">2주일</option>
+                        <option value="3주일">3주일</option>
+                        <option value="1개월">1개월</option>
+                        <option value="2개월">2개월</option>
+                        <option value="3개월">3개월</option>
+                        <option value="6개월">6개월</option>
+                        <option value="1년">1년</option>
+                        <option value="장기계약">장기계약</option>
+                        <option value="기간협의">기간협의</option>
+                        <option value="직접입력">직접 입력</option>
+                    </select>
+                    <input type="text" class="form-input" name="work_period_custom" id="work_period_custom" placeholder="예: 3개월 2주, 90일, 2024.03.01~2024.05.31" style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; display: none;">
+                    <input type="hidden" name="work_period" id="work_period_final">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">근무지 주소 *</label>
+                    <input type="text" class="form-input" name="work_address" required style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                    <button type="button" onclick="getAddressCoordinates()" style="margin-top: 0.5rem; padding: 0.5rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">주소로 좌표 찾기</button>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">위도 *</label>
+                        <input type="number" step="any" class="form-input" name="work_latitude" required style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">경도 *</label>
+                        <input type="number" step="any" class="form-input" name="work_longitude" required style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">마감일</label>
+                    <input type="datetime-local" class="form-input" name="deadline" style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">최대 모집인원</label>
+                    <input type="number" class="form-input" name="max_applicants" placeholder="예: 5 (비워두면 무제한)" style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <div>
+                        <div style="display: flex; align-items: center; margin-bottom: 0.25rem;">
+                            <label for="auto_approval" style="font-weight: 500; cursor: pointer; margin: 0;">자동 승인</label>
+                            <input type="checkbox" name="auto_approval" id="auto_approval" style="margin: 0 0 0 0.25rem;">
+                        </div>
+                        <small style="color: #6c757d;">체크하면 신청 즉시 자동으로 승인됩니다.</small>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button class="btn btn-secondary" onclick="closeCreateJobModal()" style="background: #6c757d; color: white; border: none; padding: 0.75rem 1rem; border-radius: 4px; cursor: pointer;">취소</button>
+                <button class="btn btn-primary" onclick="submitJobPost()" style="background: #495057; color: white; border: none; padding: 0.75rem 1rem; border-radius: 4px; cursor: pointer;">등록</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        
+        // 페이지 로드 시 초기화
+        window.onload = function() {
+            checkAuth();
+            loadDashboardData();
+            setInterval(refreshData, 30000); // 30초마다 새로고침
+            
+            // 직원 검색 이벤트 리스너
+            const employeeSearchInput = document.getElementById('employeeSearch');
+            if (employeeSearchInput) {
+                employeeSearchInput.addEventListener('input', function(e) {
+                    loadEmployeeList(e.target.value);
+                });
+            }
+            
+            // 공고 검색 이벤트 리스너
+            const jobSearchInput = document.getElementById('jobSearch');
+            if (jobSearchInput) {
+                jobSearchInput.addEventListener('input', function(e) {
+                    loadJobPosts(e.target.value);
+                });
+            }
+        };
+        
+        // 인증 확인
+        function checkAuth() {
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            // 토큰 검증 및 사용자 정보 로드
+            fetch('/api/auth/verify', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Token invalid');
+                }
+                return response.json();
+            })
+            .then(user => {
+                if (user.role !== 'admin' && user.role !== 'manager') {
+                    alert('관리자 권한이 필요합니다.');
+                    window.location.href = '/employee';
+                    return;
+                }
+                
+                currentUser = user;
+                document.getElementById('adminName').textContent = user.full_name;
+            })
+            .catch(error => {
+                console.error('Auth error:', error);
+                localStorage.removeItem('admin_token');
+                window.location.href = '/login';
+            });
+        }
+        
+        // 대시보드 데이터 로드
+        async function loadDashboardData() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                
+                // 통계 데이터
+                const statsResponse = await fetch('/api/admin/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const stats = await statsResponse.json();
+                
+                document.getElementById('totalEmployees').textContent = stats.total_employees;
+                document.getElementById('presentToday').textContent = stats.present_today;
+                document.getElementById('lateToday').textContent = stats.late_today;
+                document.getElementById('absentToday').textContent = stats.absent_today;
+                
+                // 실시간 현황
+                loadCurrentStatus();
+                
+                // 최근 활동
+                loadRecentActivity();
+                
+                // 직원 목록
+                loadEmployeeList();
+                
+                // 부서 목록 로드
+                loadDepartments();
+                
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+            }
+        }
+        
+        // 공고 상세 보기
+        function viewJobDetail(jobId) {
+            window.open(`/jobs/${jobId}`, '_self');
+        }
+        
+        // 실시간 현황 로드
+        async function loadCurrentStatus() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/current-status', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                
+                let html = '';
+                
+                if (data.working_employees.length === 0) {
+                    html = '<p>현재 근무 중인 직원이 없습니다.</p>';
+                } else {
+                    data.working_employees.forEach(emp => {
+                        const workDuration = calculateWorkDuration(emp.check_in_time);
+                        html += `
+                            <div style="padding: 0.75rem; border-left: 3px solid #28a745; margin: 0.5rem 0; background: #f8f9fa;">
+                                <strong>${emp.employee_name}</strong> (${emp.department || '부서 없음'})
+                                <br><small>위치: ${emp.current_site || '확인 중'}</small>
+                                <br><small>근무시간: ${workDuration}</small>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('currentStatus').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Current status load error:', error);
+                document.getElementById('currentStatus').innerHTML = '<p>데이터를 불러올 수 없습니다.</p>';
+            }
+        }
+        
+        // 최근 활동 로드
+        async function loadRecentActivity() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/recent-activity', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const activities = await response.json();
+                
+                let html = '';
+                
+                if (activities.length === 0) {
+                    html = '<p>최근 활동이 없습니다.</p>';
+                } else {
+                    activities.forEach(activity => {
+                        const time = new Date(activity.timestamp).toLocaleTimeString('ko-KR');
+                        const typeIcon = activity.event_type === 'check_in' ? '입장' : 
+                                        activity.event_type === 'check_out' ? '퇴장' : '위치업데이트';
+                        
+                        html += `
+                            <div style="padding: 0.5rem; border-bottom: 1px solid #eee;">
+                                ${typeIcon} <strong>${activity.employee_name}</strong>
+                                <br><small>${time} - ${activity.site_name || '위치 업데이트'}</small>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('recentActivity').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Recent activity load error:', error);
+            }
+        }
+        
+        // 직원 목록 로드
+        async function loadEmployeeList(searchTerm = '') {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/employees', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const employees = await response.json();
+                
+                // 검색 필터링
+                const filteredEmployees = searchTerm 
+                    ? employees.filter(emp => 
+                        emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        emp.employee_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (emp.department && emp.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                        (emp.position && emp.position.toLowerCase().includes(searchTerm.toLowerCase()))
+                      )
+                    : employees;
+                
+                let html = '';
+                
+                filteredEmployees.forEach(emp => {
+                    const statusBadge = getStatusBadge(emp.current_status);
+                    html += `
+                        <tr>
+                            <td>${emp.employee_number}</td>
+                            <td>${emp.full_name}</td>
+                            <td>${emp.department || '-'}</td>
+                            <td>${emp.position || '-'}</td>
+                            <td>${statusBadge}</td>
+                            <td class="location-info">${emp.last_location || '위치 정보 없음'}</td>
+                            <td>
+                                <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;" 
+                                        onclick="viewEmployee(${emp.id})">상세</button>
+                                <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem; background: #17a2b8; color: white;" 
+                                        onclick="editEmployee(${emp.id})">수정</button>
+                                <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem; background: #28a745; color: white;" 
+                                        onclick="manageEmployeeRole(${emp.id}, '${emp.full_name}', '${emp.role || 'employee'}')">권한</button>
+                                <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #dc3545; color: white;" 
+                                        onclick="deleteEmployee(${emp.id}, '${emp.full_name}')">삭제</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                document.getElementById('employeeList').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Employee list load error:', error);
+            }
+        }
+        
+        // 별칭 함수 (이미 사용중인 곳에서 호출)
+        function loadEmployeesData() {
+            loadEmployeeList();
+        }
+        
+        // 상태 배지 생성
+        function getStatusBadge(status) {
+            const badges = {
+                'working': '<span class="status-badge status-working">근무중</span>',
+                'absent': '<span class="status-badge status-absent">결근</span>',
+                'late': '<span class="status-badge status-late">지각</span>',
+                'completed': '<span class="status-badge">퇴근완료</span>'
+            };
+            return badges[status] || '<span class="status-badge">대기</span>';
+        }
+        
+        // 근무 시간 계산
+        function calculateWorkDuration(checkInTime) {
+            const checkIn = new Date(checkInTime);
+            const now = new Date();
+            const diff = now - checkIn;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            return `${hours}시간 ${minutes}분`;
+        }
+        
+        // 탭 전환
+        function showTab(tabName) {
+            // 모든 탭 숨기기
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 선택된 탭 보이기
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // 탭별 데이터 로드
+            switch(tabName) {
+                case 'jobs':
+                    loadJobPosts();
+                    break;
+                case 'attendance':
+                    loadAttendanceData();
+                    break;
+                case 'violations':
+                    loadViolationsData();
+                    break;
+            }
+        }
+        
+        // 데이터 새로고침
+        function refreshData() {
+            loadDashboardData();
+        }
+        
+        // 로그아웃
+        function logout() {
+            localStorage.removeItem('admin_token');
+            window.location.href = '/login';
+        }
+        
+        // 직원 상세 보기
+        function viewEmployee(employeeId) {
+            window.open(`/admin/employee/${employeeId}/detail`, '_self');
+        }
+
+        // 직원 삭제
+        async function deleteEmployee(employeeId, employeeName) {
+            if (!confirm(`정말로 직원 "${employeeName}"을(를) 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 해당 직원의 모든 데이터(출근 기록, 위치 정보, 위반사항 등)가 함께 삭제됩니다.`)) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch(`/api/admin/employees/${employeeId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert(result.message);
+                    loadEmployeeList(); // 목록 새로고침
+                } else {
+                    alert('직원 삭제에 실패했습니다: ' + (result.detail || result.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Delete employee error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+
+        // 직원 정보 수정
+        async function editEmployee(employeeId) {
+            try {
+                // 직원 정보와 부서 목록 가져오기
+                const [employeeResponse, departmentsResponse] = await Promise.all([
+                    fetch(`/api/admin/employee/${employeeId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+                        }
+                    }),
+                    fetch('/api/admin/departments', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+                        }
+                    })
+                ]);
+
+                if (!employeeResponse.ok || !departmentsResponse.ok) {
+                    throw new Error('데이터를 불러올 수 없습니다.');
+                }
+
+                const employeeData = await employeeResponse.json();
+                const departments = await departmentsResponse.json();
+                
+                // API 응답에서 실제 직원 정보 추출
+                const employee = employeeData.employee;
+
+                // 부서 선택 옵션 생성
+                let departmentOptions = '<option value="">부서 선택</option>';
+                departments.forEach(dept => {
+                    // 부서 이름으로 매칭 (API는 부서 이름만 반환)
+                    const selected = employee.department === dept.name ? 'selected' : '';
+                    departmentOptions += `<option value="${dept.id}" ${selected}>${dept.name}</option>`;
+                });
+
+                const html = `
+                    <div class="modal-overlay" onclick="closeModal(event)">
+                        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+                            <h3>직원 정보 수정</h3>
+                            
+                            <form id="editEmployeeForm" onsubmit="updateEmployee(event, ${employeeId})">
+                                <div style="display: grid; gap: 1rem; margin-bottom: 1rem;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">직원번호</label>
+                                        <input type="text" name="employee_number" value="${employee.employee_number}" 
+                                               style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;" required>
+                                    </div>
+                                    
+                                    <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">이름</label>
+                                        <input type="text" name="full_name" value="${employee.full_name}" 
+                                               style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;" required>
+                                    </div>
+                                    
+                                    <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">이메일</label>
+                                        <input type="email" name="email" value="${employee.email || ''}" 
+                                               style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                                    </div>
+                                    
+                                    <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">전화번호</label>
+                                        <input type="tel" name="phone_number" value="${employee.phone || ''}" 
+                                               style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                                    </div>
+                                    
+                                    <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">부서</label>
+                                        <select name="department_id" style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                                            ${departmentOptions}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">직급</label>
+                                        <input type="text" name="position" value="${employee.position || ''}" 
+                                               style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                                    </div>
+                                    
+                                    <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">급여</label>
+                                        <input type="number" name="salary" value="" 
+                                               style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;" 
+                                               placeholder="예: 3000000">
+                                    </div>
+                                    
+                                    <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">입사일</label>
+                                        <input type="date" name="hire_date" value="${employee.hire_date ? (employee.hire_date.includes('T') ? employee.hire_date.split('T')[0] : employee.hire_date.split(' ')[0]) : ''}" 
+                                               style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                                    </div>
+                                </div>
+                                
+                                <div style="text-align: right; gap: 0.5rem; display: flex; justify-content: flex-end;">
+                                    <button type="button" class="btn" onclick="closeModal()" 
+                                            style="background: #6c757d; color: white; margin-right: 0.5rem;">취소</button>
+                                    <button type="submit" class="btn btn-primary">수정 완료</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+
+                document.body.insertAdjacentHTML('beforeend', html);
+
+            } catch (error) {
+                console.error('Edit employee error:', error);
+                alert('직원 정보를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 직원 정보 업데이트
+        async function updateEmployee(event, employeeId) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const employeeData = {
+                employee_number: formData.get('employee_number')?.trim(),
+                full_name: formData.get('full_name')?.trim(),
+                email: formData.get('email')?.trim() || null,
+                phone_number: formData.get('phone_number')?.trim() || null,
+                department_id: formData.get('department_id') ? parseInt(formData.get('department_id')) : null,
+                position: formData.get('position')?.trim() || null,
+                salary: formData.get('salary') ? parseFloat(formData.get('salary')) : null,
+                hire_date: formData.get('hire_date') || null
+            };
+
+            // 유효성 검사
+            if (!employeeData.employee_number || !employeeData.full_name) {
+                alert('직원번호와 이름은 필수 입력 항목입니다.');
+                return;
+            }
+
+            // 버튼 비활성화
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = '수정 중...';
+
+            try {
+                const response = await fetch(`/api/admin/employees/${employeeId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(employeeData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success !== false) {
+                    alert('직원 정보가 성공적으로 수정되었습니다.');
+                    
+                    // 직원 목록 새로고침
+                    await loadEmployeeList();
+                    
+                    // 모달 닫기
+                    closeModal();
+                } else {
+                    console.error('Employee update failed:', result);
+                    alert('직원 정보 수정에 실패했습니다: ' + (result.detail || result.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Update employee error:', error);
+                alert('서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.');
+            } finally {
+                // 버튼 다시 활성화
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
+        }
+
+        // 직원 권한 관리
+        async function manageEmployeeRole(employeeId, employeeName, currentRole) {
+            const roleOptions = {
+                'employee': '일반 직원',
+                'manager': '매니저',
+                'admin': '관리자'
+            };
+            
+            let optionsHtml = '';
+            for (const [value, label] of Object.entries(roleOptions)) {
+                const selected = value === currentRole ? 'selected' : '';
+                optionsHtml += `<option value="${value}" ${selected}>${label}</option>`;
+            }
+            
+            const newRole = prompt(`직원 "${employeeName}"의 권한을 변경하시겠습니까?\n\n현재 권한: ${roleOptions[currentRole] || '일반 직원'}\n\n새 권한을 선택하세요:\n1. employee (일반 직원)\n2. manager (매니저)\n3. admin (관리자)\n\n입력하세요:`, currentRole);
+            
+            if (!newRole || newRole === currentRole) {
+                return;
+            }
+            
+            if (!roleOptions[newRole]) {
+                alert('올바른 권한을 입력하세요 (employee, manager, admin)');
+                return;
+            }
+            
+            if (!confirm(`직원 "${employeeName}"의 권한을 "${roleOptions[newRole]}"로 변경하시겠습니까?`)) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch(`/api/admin/employees/${employeeId}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    alert(result.message);
+                    loadEmployeeList(); // 목록 새로고침
+                } else {
+                    alert('권한 변경에 실패했습니다: ' + (result.detail || result.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Change employee role error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+
+        // 부서 관리 모달
+        async function showDepartmentManagement() {
+            const depts = await fetchDepartments();
+            
+            let departmentList = '';
+            depts.forEach(dept => {
+                departmentList += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border: 1px solid #dee2e6; margin-bottom: 0.5rem; border-radius: 4px;">
+                        <div>
+                            <strong>${dept.name}</strong>
+                            ${dept.description ? `<br><small style="color: #6c757d;">${dept.description}</small>` : ''}
+                            <br><small>직원 수: ${dept.employee_count}명</small>
+                        </div>
+                        <div>
+                            <button class="btn" style="background: #dc3545; color: white; padding: 0.25rem 0.5rem; font-size: 0.8rem; border: none; border-radius: 4px; cursor: pointer;" 
+                                    onclick="deleteDepartment(${dept.id}, '${dept.name}', ${dept.employee_count})"
+                                    ${dept.employee_count > 0 ? 'disabled title="직원이 있는 부서는 삭제할 수 없습니다"' : ''}>
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            const html = `
+                <div class="modal-overlay" onclick="closeModal(event)">
+                    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
+                        <h3>부서 관리</h3>
+                        
+                        <div style="margin-bottom: 2rem;">
+                            <h4>새 부서 추가</h4>
+                            <form id="addDepartmentForm" onsubmit="createDepartment(event)" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <input type="text" name="name" placeholder="부서명" required style="padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                                <input type="text" name="description" placeholder="부서 설명 (선택사항)" style="padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                                <button type="submit" class="btn btn-primary" style="width: fit-content;">부서 추가</button>
+                            </form>
+                        </div>
+                        
+                        <div>
+                            <h4>기존 부서 목록</h4>
+                            <div id="departmentList">
+                                ${departmentList || '<p style="color: #6c757d;">등록된 부서가 없습니다.</p>'}
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: right; margin-top: 1rem;">
+                            <button class="btn" onclick="closeModal()" style="background: #6c757d; color: white;">닫기</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        // 부서 생성
+        async function createDepartment(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const departmentData = {
+                name: formData.get('name')?.trim(),
+                description: formData.get('description')?.trim() || ''
+            };
+
+            // 입력 검증
+            if (!departmentData.name) {
+                alert('부서명을 입력해주세요.');
+                return;
+            }
+
+            // 버튼 비활성화
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = '생성 중...';
+
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    alert('로그인이 필요합니다.');
+                    return;
+                }
+
+                const response = await fetch('/api/admin/departments', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(departmentData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert(result.message);
+                    
+                    // 폼 초기화
+                    event.target.reset();
+                    
+                    // 부서 목록 새로고침
+                    await loadDepartments();
+                    
+                    // 모달이 있다면 닫기
+                    if (typeof closeModal === 'function') {
+                        closeModal();
+                    }
+                } else {
+                    console.error('Department creation failed:', result);
+                    alert('부서 생성에 실패했습니다: ' + (result.detail || result.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Create department error:', error);
+                alert('서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.');
+            } finally {
+                // 버튼 다시 활성화
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
+        }
+        
+        // 부서 삭제
+        async function deleteDepartment(departmentId, departmentName, employeeCount) {
+            // 직원이 있는 부서는 삭제 불가
+            if (employeeCount > 0) {
+                alert(`'${departmentName}' 부서에는 ${employeeCount}명의 직원이 있어 삭제할 수 없습니다.\n먼저 모든 직원을 다른 부서로 이동시킨 후 삭제해주세요.`);
+                return;
+            }
+            
+            if (!confirm(`'${departmentName}' 부서를 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    alert('로그인이 필요합니다.');
+                    return;
+                }
+                
+                const response = await fetch(`/api/admin/departments/${departmentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success !== false) {
+                    alert('부서가 성공적으로 삭제되었습니다.');
+                    
+                    // 부서 목록 새로고침
+                    await loadDepartments();
+                    
+                    // 모달 다시 열기 (새로운 데이터로)
+                    closeModal();
+                    setTimeout(() => showDepartmentManagement(), 100);
+                } else {
+                    console.error('Department deletion failed:', result);
+                    alert('부서 삭제에 실패했습니다: ' + (result.detail || result.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Delete department error:', error);
+                alert('서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.');
+            }
+        }
+        
+        // 공고 목록 로드
+        async function loadJobPosts(searchTerm = '') {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/jobs?limit=50', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                
+                let html = '';
+                
+                if (data.success && data.job_posts.length > 0) {
+                    // 검색 필터링
+                    const filteredJobs = searchTerm 
+                        ? data.job_posts.filter(job => 
+                            job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            job.description.toLowerCase().includes(searchTerm.toLowerCase())
+                          )
+                        : data.job_posts;
+                    
+                    filteredJobs.forEach(job => {
+                        const createdDate = new Date(job.created_at).toLocaleDateString('ko-KR');
+                        const deadline = job.deadline ? new Date(job.deadline).toLocaleDateString('ko-KR') : '상시모집';
+                        
+                        // 상태 텍스트 및 색상
+                        let statusText = '대기';
+                        let statusClass = '';
+                        
+                        switch(job.status) {
+                            case 'active':
+                                statusText = '신청가능';
+                                statusClass = 'status-working';
+                                break;
+                            case 'full':
+                                statusText = '인원마감';
+                                statusClass = 'status-late';
+                                break;
+                            case 'expired':
+                                statusText = '종료됨';
+                                statusClass = 'status-absent';
+                                break;
+                            case 'closed':
+                                statusText = '인원마감';
+                                statusClass = 'status-absent';
+                                break;
+                        }
+                        
+                        const maxApplicantsText = job.max_applicants ? `${job.max_applicants}명` : '무제한';
+                        const approvalText = job.auto_approval ? '자동승인' : '직접승인';
+                        
+                        html += `
+                            <tr>
+                                <td>${job.title}</td>
+                                <td>${job.company_name}</td>
+                                <td>${createdDate}</td>
+                                <td>${job.application_count}명 / ${job.approved_count || 0}명</td>
+                                <td>${maxApplicantsText}</td>
+                                <td>${approvalText}</td>
+                                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                                <td>
+                                    <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;"
+                                            onclick="viewJobApplications(${job.id})">신청자</button>
+                                    <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;"
+                                            onclick="toggleJobStatus(${job.id})">마감토글</button>
+                                    <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;"
+                                            onclick="viewJobDetail(${job.id})">상세</button>
+                                    <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;"
+                                            onclick="deleteJobPost(${job.id})">삭제</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    html = '<tr><td colspan="8">등록된 공고가 없습니다.</td></tr>';
+                }
+                
+                document.getElementById('jobList').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Job posts load error:', error);
+                document.getElementById('jobList').innerHTML = '<tr><td colspan="8">공고 목록을 불러올 수 없습니다.</td></tr>';
+            }
+        }
+        
+        // 공고 신청자 목록 보기
+        async function viewJobApplications(jobId) {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch(`/api/admin/jobs/${jobId}/applications`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showApplicationsModal(data);
+                } else {
+                    alert(data.detail || '신청자 목록을 불러올 수 없습니다.');
+                }
+            } catch (error) {
+                console.error('Load applications error:', error);
+                alert('신청자 목록 로드 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // 신청자 목록 모달 표시
+        function showApplicationsModal(data) {
+            const jobPost = data.job_post;
+            const applications = data.applications;
+            
+            let modalHtml = `
+                <div class="modal" id="applicationsModal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div class="modal-content" style="width: 90%; max-width: 1000px; max-height: 80vh; overflow-y: auto; margin: 0; position: relative; background: white; border-radius: 8px; padding: 2rem;">
+                        <div class="modal-header" style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; text-align: center;">
+                            ${jobPost.title} - 신청자 목록
+                            <div style="font-size: 0.9rem; color: #6c757d; margin-top: 0.5rem;">
+                                총 신청자: ${applications.length}명 | 승인된 인원: ${jobPost.approved_count}명 | 최대 모집인원: ${jobPost.max_applicants || '무제한'}
+                                <br>승인 방식: ${jobPost.auto_approval ? '자동승인' : '직접승인'}
+                            </div>
+                        </div>
+                        
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>이름</th>
+                                    <th>이메일</th>
+                                    <th>신청일시</th>
+                                    <th>상태</th>
+                                    <th>보증금</th>
+                                    <th>검토자</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            if (applications.length === 0) {
+                modalHtml += '<tr><td colspan="7">신청자가 없습니다.</td></tr>';
+            } else {
+                applications.forEach(app => {
+                    const appliedDate = new Date(app.applied_at).toLocaleDateString('ko-KR');
+                    const statusText = getApplicationStatusText(app.status);
+                    const statusClass = getApplicationStatusClass(app.status);
+                    const depositText = app.deposit_paid ? '결제완료' : '미결제';
+                    
+                    modalHtml += `
+                        <tr>
+                            <td>${app.user.full_name}</td>
+                            <td>${app.user.email}</td>
+                            <td>${appliedDate}</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>${depositText}</td>
+                            <td>${app.reviewer || '-'}</td>
+                            <td>
+                    `;
+                    
+                    if (app.status === 'pending') {
+                        modalHtml += `
+                            <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem; background: #28a745;"
+                                    onclick="reviewApplication(${app.id}, 'approve')">승인</button>
+                            <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #dc3545;"
+                                    onclick="reviewApplication(${app.id}, 'reject')">거절</button>
+                        `;
+                    } else {
+                        modalHtml += '<span style="color: #6c757d;">처리완료</span>';
+                        
+                        // 환불 버튼 추가 (보증금이 결제되었지만 환불되지 않은 경우)
+                        if (app.deposit_paid && !app.deposit_refunded) {
+                            modalHtml += `
+                                <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-left: 0.5rem; background: #17a2b8;"
+                                        onclick="processRefund(${app.id})">환불처리</button>
+                            `;
+                        } else if (app.deposit_refunded) {
+                            modalHtml += '<span style="color: #17a2b8; margin-left: 0.5rem; font-size: 0.8rem;">환불완료</span>';
+                        }
+                    }
+                    
+                    modalHtml += `
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            modalHtml += `
+                            </tbody>
+                        </table>
+                        
+                        <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+                            <button class="btn btn-secondary" onclick="closeApplicationsModal()" style="background: #6c757d; color: white; border: none; padding: 0.75rem 1rem; border-radius: 4px; cursor: pointer;">닫기</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 기존 모달 제거하고 새 모달 추가
+            const existingModal = document.getElementById('applicationsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+        
+        // 신청자 목록 모달 닫기
+        function closeApplicationsModal() {
+            const modal = document.getElementById('applicationsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // 신청 상태 텍스트 변환
+        function getApplicationStatusText(status) {
+            const statusMap = {
+                'pending': '대기중',
+                'approved': '승인됨',
+                'rejected': '거절됨',
+                'working': '근무중',
+                'completed': '완료됨'
+            };
+            return statusMap[status] || status;
+        }
+        
+        // 신청 상태 클래스 변환
+        function getApplicationStatusClass(status) {
+            const classMap = {
+                'pending': 'status-late',
+                'approved': 'status-working',
+                'rejected': 'status-absent',
+                'working': 'status-working',
+                'completed': ''
+            };
+            return classMap[status] || '';
+        }
+        
+        // 신청 승인/거절 처리
+        async function reviewApplication(applicationId, action) {
+            let reason = null;
+            
+            if (action === 'reject') {
+                reason = prompt('거절 사유를 입력하세요:', '');
+                if (reason === null) return; // 취소됨
+            }
+            
+            if (!confirm(`정말로 ${action === 'approve' ? '승인' : '거절'}하시겠습니까?`)) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const params = new URLSearchParams();
+                params.append('action', action);
+                if (reason) params.append('reason', reason);
+                
+                const response = await fetch(`/api/admin/applications/${applicationId}/review`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        reason: reason
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Review response:', result);
+                
+                if (response.ok) {
+                    alert(typeof result.message === 'string' ? result.message : '처리되었습니다.');
+                    closeApplicationsModal();
+                    loadJobPosts(); // 공고 목록 새로고침
+                } else {
+                    const errorMsg = typeof result.detail === 'string' ? result.detail : '처리 중 오류가 발생했습니다.';
+                    console.error('Review error:', result);
+                    alert(errorMsg);
+                }
+            } catch (error) {
+                console.error('Review application error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+        
+        // 환불 처리
+        async function processRefund(applicationId) {
+            if (!confirm('정말로 이 신청의 보증금을 환불하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch(`/api/admin/applications/${applicationId}/refund`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                console.log('Refund response:', result);
+                
+                if (response.ok) {
+                    alert(typeof result.message === 'string' ? result.message : '환불이 처리되었습니다.');
+                    closeApplicationsModal();
+                    loadJobPosts(); // 공고 목록 새로고침
+                } else {
+                    const errorMsg = typeof result.detail === 'string' ? result.detail : '환불 처리 중 오류가 발생했습니다.';
+                    console.error('Refund error:', result);
+                    alert(errorMsg);
+                }
+            } catch (error) {
+                console.error('Refund application error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+        
+        // 공고 상태 토글 (마감/재개방)
+        async function toggleJobStatus(jobId) {
+            if (!confirm('공고 상태를 변경하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch(`/api/admin/jobs/${jobId}/toggle-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(result.message);
+                    loadJobPosts(); // 공고 목록 새로고침
+                } else {
+                    alert(result.detail || '상태 변경 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Toggle job status error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+        
+        // 공고 삭제
+        async function deleteJobPost(jobId) {
+            if (!confirm('정말로 이 공고를 삭제하시겠습니까? 관련된 모든 신청 정보도 함께 삭제됩니다.')) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch(`/api/admin/jobs/${jobId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(result.message || '공고가 성공적으로 삭제되었습니다.');
+                    loadJobPosts(); // 공고 목록 새로고침
+                } else {
+                    alert(result.detail || '삭제 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Delete job post error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+        
+        // 공고 등록 모달 열기
+        function showCreateJobModal() {
+            const modal = document.getElementById('createJobModal');
+            modal.style.display = 'flex';
+        }
+        
+        // 공고 등록 모달 닫기
+        function closeCreateJobModal() {
+            document.getElementById('createJobModal').style.display = 'none';
+            document.getElementById('createJobForm').reset();
+        }
+        
+        // 주소로 좌표 찾기
+        async function getAddressCoordinates() {
+            const address = document.querySelector('[name="work_address"]').value;
+            if (!address) {
+                alert('주소를 입력해주세요.');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/geocoding/address-to-coordinates', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        address: address
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    document.querySelector('[name="work_latitude"]').value = result.latitude;
+                    document.querySelector('[name="work_longitude"]').value = result.longitude;
+                    alert(`좌표가 설정되었습니다.\n위도: ${result.latitude}\n경도: ${result.longitude}`);
+                } else {
+                    alert(result.message || '주소를 찾을 수 없습니다.');
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                alert('주소 변환 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // 시간 드롭다운 조합 함수
+        function combineWorkHours() {
+            const startTime = document.getElementById('start_time').value;
+            const endTime = document.getElementById('end_time').value;
+            
+            if (startTime && endTime) {
+                if (startTime === '시간협의' || endTime === '시간협의') {
+                    document.getElementById('work_hours_combined').value = '시간협의';
+                } else {
+                    document.getElementById('work_hours_combined').value = `${startTime}-${endTime}`;
+                }
+            }
+        }
+        
+        // 근무 기간 토글 함수
+        function toggleCustomPeriod() {
+            const select = document.getElementById('work_period_select');
+            const customInput = document.getElementById('work_period_custom');
+            const finalInput = document.getElementById('work_period_final');
+            
+            if (select.value === '직접입력') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+                finalInput.value = '';
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                finalInput.value = select.value;
+            }
+        }
+        
+        // 근무 기간 최종값 설정
+        function setFinalWorkPeriod() {
+            const select = document.getElementById('work_period_select');
+            const customInput = document.getElementById('work_period_custom');
+            const finalInput = document.getElementById('work_period_final');
+            
+            if (select.value === '직접입력') {
+                finalInput.value = customInput.value.trim();
+            } else {
+                finalInput.value = select.value;
+            }
+        }
+        
+        // 시간 변경 이벤트 리스너 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const startTimeSelect = document.getElementById('start_time');
+            const endTimeSelect = document.getElementById('end_time');
+            const customPeriodInput = document.getElementById('work_period_custom');
+            
+            if (startTimeSelect) {
+                startTimeSelect.addEventListener('change', combineWorkHours);
+            }
+            if (endTimeSelect) {
+                endTimeSelect.addEventListener('change', combineWorkHours);
+            }
+            if (customPeriodInput) {
+                customPeriodInput.addEventListener('input', setFinalWorkPeriod);
+            }
+        });
+        
+        // 공고 등록
+        async function submitJobPost() {
+            // 제출 전에 조합 필드들 설정
+            combineWorkHours();
+            setFinalWorkPeriod();
+            
+            const form = document.getElementById('createJobForm');
+            const formData = new FormData(form);
+            
+            // 입력 값 검증
+            const title = formData.get('title');
+            const company_name = formData.get('company_name');
+            const description = formData.get('description');
+            const work_address = formData.get('work_address');
+            const work_latitude = formData.get('work_latitude');
+            const work_longitude = formData.get('work_longitude');
+            const startTime = formData.get('start_time');
+            const endTime = formData.get('end_time');
+            const workPeriod = formData.get('work_period');
+            
+            if (!title || !company_name || !description || !work_address || !work_latitude || !work_longitude || !startTime || !endTime || !workPeriod) {
+                alert('필수 항목을 모두 입력해주세요.');
+                return;
+            }
+            
+            const jobData = {
+                title: title,
+                company_name: company_name,
+                description: description,
+                requirements: formData.get('requirements') || '',
+                salary: formData.get('salary') || '',
+                work_hours: formData.get('work_hours') || '',
+                work_period: formData.get('work_period') || '',  // 근무 기간 추가
+                work_address: work_address,
+                work_latitude: parseFloat(work_latitude),
+                work_longitude: parseFloat(work_longitude),
+                geofence_radius: 100.0,
+                deadline: formData.get('deadline') || null,
+                max_applicants: formData.get('max_applicants') ? parseInt(formData.get('max_applicants')) : null,
+                auto_approval: formData.has('auto_approval')
+            };
+            
+            console.log('Submitting job data:', jobData);
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    alert('로그인이 필요합니다.');
+                    return;
+                }
+                
+                const response = await fetch('/api/jobs', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(jobData)
+                });
+                
+                const result = await response.json();
+                console.log('Server response:', result);
+                
+                if (response.ok) {
+                    alert('공고가 등록되었습니다.');
+                    closeCreateJobModal();
+                    loadJobPosts(); // 목록 새로고침
+                } else {
+                    console.error('Error response:', result);
+                    alert(result.detail || result.message || '공고 등록 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Create job error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+        
+        // 직원 추가 모달
+        async function showAddEmployee() {
+            const departments = await fetchDepartments();
+            
+            let departmentOptions = '';
+            departments.forEach(dept => {
+                departmentOptions += `<option value="${dept.id}">${dept.name}</option>`;
+            });
+            
+            const html = `
+                <div class="modal-overlay" onclick="closeModal(event)">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <h3>직원 추가</h3>
+                        <form id="addEmployeeForm" onsubmit="addEmployee(event)">
+                            <div class="form-group">
+                                <label>사용자명:</label>
+                                <input type="text" name="username" required>
+                            </div>
+                            <div class="form-group">
+                                <label>비밀번호:</label>
+                                <input type="password" name="password" required>
+                            </div>
+                            <div class="form-group">
+                                <label>이름:</label>
+                                <input type="text" name="full_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>이메일:</label>
+                                <input type="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label>부서:</label>
+                                <select name="department_id" required>
+                                    <option value="">부서 선택</option>
+                                    ${departmentOptions}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>직급:</label>
+                                <input type="text" name="position" required>
+                            </div>
+                            <div class="modal-buttons">
+                                <button type="button" onclick="closeModal()">취소</button>
+                                <button type="submit" class="btn btn-primary">추가</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+        
+        // 모달 닫기
+        function closeModal(event) {
+            if (!event || event.target.classList.contains('modal-overlay')) {
+                const modal = document.querySelector('.modal-overlay');
+                if (modal) {
+                    modal.remove();
+                }
+            }
+        }
+        
+        // 부서 목록 가져오기
+        async function fetchDepartments() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/departments', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const departments = await response.json();
+                    return departments || [];
+                } else {
+                    console.error('Failed to fetch departments:', response.status);
+                    return [];
+                }
+            } catch (error) {
+                console.error('Error fetching departments:', error);
+                return [];
+            }
+        }
+        
+        // 직원 추가 처리
+        async function addEmployee(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/employees', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(result.message);
+                    closeModal();
+                    loadEmployeesData(); // 직원 목록 새로고침
+                } else {
+                    alert('직원 추가에 실패했습니다: ' + (result.detail || result.message));
+                }
+                
+            } catch (error) {
+                console.error('Add employee error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+        
+        // 출근 데이터 로드
+        async function loadAttendanceData() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const date = document.getElementById('attendanceDate').value;
+                const departmentId = document.getElementById('departmentFilter').value;
+                
+                let url = '/api/admin/attendance-records';
+                const params = new URLSearchParams();
+                
+                if (date) params.append('date', date);
+                if (departmentId) params.append('department_id', departmentId);
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const records = await response.json();
+                
+                let html = '';
+                
+                if (records.length === 0) {
+                    html = '<tr><td colspan="6">출근 기록이 없습니다.</td></tr>';
+                } else {
+                    records.forEach(record => {
+                        const checkInTime = record.check_in_time ? 
+                            new Date(record.check_in_time).toLocaleString('ko-KR') : '-';
+                        const checkOutTime = record.check_out_time ? 
+                            new Date(record.check_out_time).toLocaleString('ko-KR') : '-';
+                        const workHours = record.total_work_minutes ? 
+                            `${Math.floor(record.total_work_minutes / 60)}시간 ${record.total_work_minutes % 60}분` : '-';
+                        
+                        const statusBadge = record.is_late ? 
+                            '<span class="status-badge status-late">지각</span>' :
+                            record.check_out_time ? 
+                            '<span class="status-badge status-completed">완료</span>' :
+                            '<span class="status-badge status-working">근무중</span>';
+                        
+                        html += `
+                            <tr>
+                                <td>${record.employee_name}</td>
+                                <td>${checkInTime}</td>
+                                <td>${checkOutTime}</td>
+                                <td>${workHours}</td>
+                                <td>${record.site_name || '-'}</td>
+                                <td>${statusBadge}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                document.getElementById('attendanceList').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Attendance data load error:', error);
+                document.getElementById('attendanceList').innerHTML = '<tr><td colspan="6">데이터를 불러올 수 없습니다.</td></tr>';
+            }
+        }
+        
+        // 위반 사항 로드
+        async function loadViolationsData() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/violations', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const violations = await response.json();
+                
+                let html = '';
+                
+                if (violations.length === 0) {
+                    html = '<tr><td colspan="6">위반 사항이 없습니다.</td></tr>';
+                } else {
+                    violations.forEach(violation => {
+                        const occurredAt = new Date(violation.occurred_at).toLocaleString('ko-KR');
+                        const severityClass = violation.severity === 'high' ? 'danger' : 
+                                            violation.severity === 'medium' ? 'warning' : 'info';
+                        
+                        html += `
+                            <tr>
+                                <td>${occurredAt}</td>
+                                <td>${violation.employee_name}</td>
+                                <td>${getViolationTypeText(violation.violation_type)}</td>
+                                <td><span class="status-badge status-${severityClass}">${getSeverityText(violation.severity)}</span></td>
+                                <td><span class="status-badge">${getStatusText(violation.status)}</span></td>
+                                <td>
+                                    <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;"
+                                            onclick="reviewViolation(${violation.id})">검토</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                document.getElementById('violationsList').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Violations data load error:', error);
+                document.getElementById('violationsList').innerHTML = '<tr><td colspan="6">데이터를 불러올 수 없습니다.</td></tr>';
+            }
+        }
+        
+        // 부서 목록 로드
+        async function loadDepartments() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/departments', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const departments = await response.json();
+                const select = document.getElementById('departmentFilter');
+                
+                // 기존 옵션 유지하고 새 옵션 추가
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.id;
+                    option.textContent = dept.name;
+                    select.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Departments load error:', error);
+            }
+        }
+        
+        // 위반 유형 텍스트 변환
+        function getViolationTypeText(type) {
+            const types = {
+                'late_arrival': '지각',
+                'early_departure': '조기퇴근',
+                'unauthorized_break': '무단휴식',
+                'location_spoofing': '위치조작',
+                'attendance_fraud': '출근조작'
+            };
+            return types[type] || type;
+        }
+        
+        // 심각도 텍스트 변환
+        function getSeverityText(severity) {
+            const severities = {
+                'low': '낮음',
+                'medium': '보통',
+                'high': '높음',
+                'critical': '심각'
+            };
+            return severities[severity] || severity;
+        }
+        
+        // 상태 텍스트 변환
+        function getStatusText(status) {
+            const statuses = {
+                'pending': '대기중',
+                'acknowledged': '확인됨',
+                'resolved': '해결됨',
+                'dismissed': '기각됨'
+            };
+            return statuses[status] || status;
+        }
+        
+        // 위반 사항 검토
+        function reviewViolation(violationId) {
+            reviewViolationDialog(violationId);
+        }
+        
+        // 리포트 생성 함수
+        async function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const reportDate = document.getElementById('reportDate').value;
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    alert('로그인이 필요합니다.');
+                    return;
+                }
+                
+                // 리포트 생성 요청
+                const params = new URLSearchParams();
+                params.append('report_type', reportType);
+                
+                if (reportDate) {
+                    if (reportType === 'monthly') {
+                        const date = new Date(reportDate);
+                        params.append('year', date.getFullYear());
+                        params.append('month', date.getMonth() + 1);
+                    } else {
+                        params.append('start_date', reportDate);
+                    }
+                }
+                
+                const response = await fetch(`/api/admin/reports/generate?${params.toString()}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayReportResult(result.data);
+                    alert('리포트가 성공적으로 생성되었습니다!');
+                } else {
+                    alert('리포트 생성에 실패했습니다: ' + result.message);
+                }
+                
+            } catch (error) {
+                console.error('Report generation error:', error);
+                alert('리포트 생성 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+        
+        // 리포트 결과 표시
+        function displayReportResult(reportData) {
+            const resultDiv = document.getElementById('reportResult');
+            let html = '';
+            
+            if (reportData.report_type === 'daily') {
+                html = `
+                    <div class="card" style="margin-bottom: 1rem;">
+                        <div class="card-header">
+                            <div class="card-title">일간 리포트 - ${reportData.target_date}</div>
+                        </div>
+                        <div style="padding: 1rem;">
+                            <div class="stats-grid" style="margin-bottom: 1rem;">
+                                <div class="stat-card primary">
+                                    <div class="stat-number">${reportData.summary.present_count}</div>
+                                    <div class="stat-label">출근자</div>
+                                </div>
+                                <div class="stat-card danger">
+                                    <div class="stat-number">${reportData.summary.absent_count}</div>
+                                    <div class="stat-label">결근자</div>
+                                </div>
+                                <div class="stat-card warning">
+                                    <div class="stat-number">${reportData.summary.late_count}</div>
+                                    <div class="stat-label">지각자</div>
+                                </div>
+                                <div class="stat-card success">
+                                    <div class="stat-number">${reportData.summary.attendance_rate}%</div>
+                                    <div class="stat-label">출근율</div>
+                                </div>
+                            </div>
+                            
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>직원번호</th>
+                                        <th>이름</th>
+                                        <th>부서</th>
+                                        <th>출근시간</th>
+                                        <th>퇴근시간</th>
+                                        <th>근무시간</th>
+                                        <th>상태</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                reportData.detailed_records.forEach(record => {
+                    html += `
+                        <tr>
+                            <td>${record.employee_number}</td>
+                            <td>${record.employee_name}</td>
+                            <td>${record.department}</td>
+                            <td>${record.check_in_time}</td>
+                            <td>${record.check_out_time}</td>
+                            <td>${record.total_work_hours}</td>
+                            <td><span class="status-badge ${record.is_late ? 'status-late' : record.is_early_leave ? 'status-warning' : ''}">${record.status}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                
+            } else if (reportData.report_type === 'monthly') {
+                html = `
+                    <div class="card" style="margin-bottom: 1rem;">
+                        <div class="card-header">
+                            <div class="card-title">월간 리포트 - ${reportData.month_name}</div>
+                        </div>
+                        <div style="padding: 1rem;">
+                            <div class="stats-grid" style="margin-bottom: 1rem;">
+                                <div class="stat-card primary">
+                                    <div class="stat-number">${reportData.summary.total_employees}</div>
+                                    <div class="stat-label">총 직원수</div>
+                                </div>
+                                <div class="stat-card success">
+                                    <div class="stat-number">${reportData.summary.total_work_records}</div>
+                                    <div class="stat-label">총 출근기록</div>
+                                </div>
+                                <div class="stat-card warning">
+                                    <div class="stat-number">${reportData.summary.total_late_records}</div>
+                                    <div class="stat-label">지각기록</div>
+                                </div>
+                                <div class="stat-card info">
+                                    <div class="stat-number">${reportData.summary.avg_attendance_rate}%</div>
+                                    <div class="stat-label">평균 출근율</div>
+                                </div>
+                            </div>
+                            
+                            <h4>부서별 통계</h4>
+                            <table class="table" style="margin-bottom: 2rem;">
+                                <thead>
+                                    <tr>
+                                        <th>부서</th>
+                                        <th>직원수</th>
+                                        <th>총 근무일</th>
+                                        <th>지각횟수</th>
+                                        <th>총 근무시간</th>
+                                        <th>평균 출근율</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                reportData.department_stats.forEach(dept => {
+                    html += `
+                        <tr>
+                            <td>${dept.department}</td>
+                            <td>${dept.employee_count}</td>
+                            <td>${dept.total_work_days}</td>
+                            <td>${dept.total_late_count}</td>
+                            <td>${dept.total_hours}시간</td>
+                            <td>${dept.avg_attendance_rate}%</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                
+            } else if (reportData.report_type === 'violations') {
+                html = `
+                    <div class="card" style="margin-bottom: 1rem;">
+                        <div class="card-header">
+                            <div class="card-title">위반사항 리포트 (${reportData.start_date} ~ ${reportData.end_date})</div>
+                        </div>
+                        <div style="padding: 1rem;">
+                            <div class="stats-grid" style="margin-bottom: 1rem;">
+                                <div class="stat-card danger">
+                                    <div class="stat-number">${reportData.summary.total_violations}</div>
+                                    <div class="stat-label">총 위반건수</div>
+                                </div>
+                                <div class="stat-card warning">
+                                    <div class="stat-number">${reportData.summary.pending_violations}</div>
+                                    <div class="stat-label">대기중</div>
+                                </div>
+                                <div class="stat-card success">
+                                    <div class="stat-number">${reportData.summary.resolved_violations}</div>
+                                    <div class="stat-label">해결됨</div>
+                                </div>
+                                <div class="stat-card primary">
+                                    <div class="stat-number">${reportData.summary.high_severity_violations}</div>
+                                    <div class="stat-label">고심각도</div>
+                                </div>
+                            </div>
+                            
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>직원명</th>
+                                        <th>위반유형</th>
+                                        <th>심각도</th>
+                                        <th>발생시간</th>
+                                        <th>상태</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                reportData.detailed_violations.forEach(violation => {
+                    const severityClass = violation.severity === 'high' ? 'danger' : 
+                                         violation.severity === 'medium' ? 'warning' : 'info';
+                    
+                    html += `
+                        <tr>
+                            <td>${violation.employee_name}</td>
+                            <td>${violation.violation_type_text}</td>
+                            <td><span class="status-badge status-${severityClass}">${violation.severity_text}</span></td>
+                            <td>${new Date(violation.occurred_at).toLocaleString('ko-KR')}</td>
+                            <td><span class="status-badge">${violation.status_text}</span></td>
+                            <td><button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="reviewViolationDialog(${violation.id})">검토</button></td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultDiv.innerHTML = html;
+        }
+        
+        // CSV 내보내기
+        async function exportReport() {
+            const reportType = document.getElementById('reportType').value;
+            const reportDate = document.getElementById('reportDate').value;
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    alert('로그인이 필요합니다.');
+                    return;
+                }
+                
+                let url = `/api/admin/reports/export/${reportType}`;
+                const params = new URLSearchParams();
+                
+                if (reportDate) {
+                    if (reportType === 'monthly') {
+                        const date = new Date(reportDate);
+                        params.append('year', date.getFullYear());
+                        params.append('month', date.getMonth() + 1);
+                    } else {
+                        params.append('start_date', reportDate);
+                    }
+                }
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                // 파일 다운로드를 위한 임시 링크 생성
+                const link = document.createElement('a');
+                link.href = url;
+                link.style.display = 'none';
+                
+                // Authorization 헤더를 위해 fetch 사용
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    
+                    const contentDisposition = response.headers.get('content-disposition');
+                    const filename = contentDisposition ? 
+                        contentDisposition.split('filename=')[1].replace(/"/g, '') : 
+                        `report_${reportType}_${new Date().toISOString().split('T')[0]}.csv`;
+                    
+                    link.href = downloadUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(downloadUrl);
+                    
+                    alert('리포트가 다운로드되었습니다.');
+                } else {
+                    throw new Error('파일 다운로드에 실패했습니다.');
+                }
+                
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('리포트 내보내기 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+        
+        // 위반사항 자동 감지
+        async function detectViolations() {
+            if (!confirm('최근 24시간 내 위반사항을 자동으로 감지하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    alert('로그인이 필요합니다.');
+                    return;
+                }
+                
+                const response = await fetch('/api/admin/violations/detect', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`${result.detected_count}건의 위반사항이 감지되었습니다.\n감지된 위반 유형: ${result.violation_types.join(', ')}`);
+                    // 위반사항 탭이 활성화되어 있다면 새로고침
+                    const currentTab = document.querySelector('.nav-tab.active');
+                    if (currentTab && currentTab.onclick.toString().includes('violations')) {
+                        loadViolationsData();
+                    }
+                } else {
+                    alert('위반사항 감지에 실패했습니다: ' + result.message);
+                }
+                
+            } catch (error) {
+                console.error('Violation detection error:', error);
+                alert('위반사항 감지 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+        
+        // 위반사항 검토 다이얼로그
+        function reviewViolationDialog(violationId) {
+            const action = prompt('처리 방법을 선택하세요:\n- acknowledge (확인)\n- resolve (해결)\n- dismiss (기각)', 'acknowledge');
+            
+            if (!action || !['acknowledge', 'resolve', 'dismiss'].includes(action)) {
+                alert('올바른 처리 방법을 입력하세요.');
+                return;
+            }
+            
+            const notes = prompt('처리 메모를 입력하세요 (선택사항):', '');
+            
+            reviewViolationAction(violationId, action, notes);
+        }
+        
+        // 위반사항 검토 처리
+        async function reviewViolationAction(violationId, action, notes) {
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    alert('로그인이 필요합니다.');
+                    return;
+                }
+                
+                const response = await fetch(`/api/admin/violations/${violationId}/review`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        action: action,
+                        notes: notes || ''
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(result.message);
+                    // 위반사항 목록 새로고침
+                    loadViolationsData();
+                } else {
+                    alert('위반사항 처리에 실패했습니다: ' + result.message);
+                }
+                
+            } catch (error) {
+                console.error('Violation review error:', error);
+                alert('위반사항 처리 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+    </script>
+    
+    <div class="footer" style="text-align: center; padding: 2rem 1rem; color: #6c757d; font-size: 0.8rem; border-top: 1px solid #e9ecef; margin-top: 3rem;">
+        © 2025 k-j-hyun & JJPartners. All rights reserved.
+    </div>
+</body>
+</html>

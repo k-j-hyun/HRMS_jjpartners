@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - 채용 게시판</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#212529">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="HRMS">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: #212529;
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .search-bar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .location-btn, .search-btn, .create-job-btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            color: white;
+        }
+        
+        .location-btn {
+            background: #28a745;
+        }
+        
+        .search-btn {
+            background: #495057;
+        }
+        
+        .create-job-btn {
+            background: #6c757d;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        .job-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .job-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+        }
+        
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .job-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+        
+        .company-name {
+            color: #495057;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .job-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .job-description {
+            color: #495057;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .job-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .job-detail {
+            background: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        
+        .job-detail strong {
+            display: block;
+            color: #495057;
+            margin-bottom: 0.25rem;
+        }
+        
+        .job-location {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+        
+        .job-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f3f4;
+        }
+        
+        .job-stats {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .apply-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        .apply-btn:hover {
+            background: #218838;
+        }
+        
+        .apply-btn.apply-disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .apply-btn.apply-disabled:hover {
+            background: #6c757d;
+        }
+        
+        .job-card.job-disabled {
+            opacity: 0.7;
+            border-color: #dee2e6;
+        }
+        
+        .job-status {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-full {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-closed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+        
+        .page-btn {
+            background: white;
+            color: #007bff;
+            border: 1px solid #dee2e6;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .page-btn.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: #495057;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .job-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-input {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="title">HRMS - 채용 게시판</div>
+            <div class="nav-buttons">
+                <a href="/employee" class="nav-btn">근태관리</a>
+                <a href="/my-applications" class="nav-btn">나의 신청</a>
+                <button onclick="logout()" class="nav-btn">로그아웃</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 검색 바 -->
+        <div class="search-bar">
+            <div class="search-form">
+                <input type="text" class="search-input" id="searchInput" placeholder="회사명, 직무, 지역으로 검색...">
+                <button class="location-btn" onclick="getLocation()">내 위치</button>
+                <button class="search-btn" onclick="searchJobs()">검색</button>
+                <button class="create-job-btn" id="createJobBtn" onclick="openCreateModal()" style="display: none;">공고 등록</button>
+            </div>
+            <div id="locationStatus" style="margin-top: 0.5rem; font-size: 0.9rem; color: #6c757d;"></div>
+        </div>
+
+        <!-- 채용 공고 목록 -->
+        <div class="job-grid" id="jobGrid">
+            <div class="loading">채용 공고를 불러오는 중...</div>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+    
+    <div style="text-align: center; padding: 2rem 1rem; color: #6c757d; font-size: 0.8rem; border-top: 1px solid #e9ecef; margin-top: 3rem;">
+        © 2025 k-j-hyun & JJPartners. All rights reserved.
+    </div>
+
+    <!-- 공고 등록 모달 -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">새 채용 공고 등록</div>
+            <form id="createForm">
+                <div class="form-group">
+                    <label class="form-label">제목 *</label>
+                    <input type="text" class="form-input" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">회사명 *</label>
+                    <input type="text" class="form-input" name="company_name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">업무 설명 *</label>
+                    <textarea class="form-textarea" name="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">자격 요건</label>
+                    <textarea class="form-textarea" name="requirements"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">급여</label>
+                    <input type="text" class="form-input" name="salary" placeholder="예: 시급 10,000원">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">근무 시간</label>
+                    <input type="text" class="form-input" name="work_hours" placeholder="예: 09:00-18:00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">근무지 주소 *</label>
+                    <input type="text" class="form-input" name="work_address" required>
+                    <button type="button" onclick="getAddressCoordinates()" style="margin-top: 0.5rem; padding: 0.5rem; background: #28a745; color: white; border: none; border-radius: 4px;">주소로 좌표 찾기</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">위도 *</label>
+                    <input type="number" step="any" class="form-input" name="work_latitude" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">경도 *</label>
+                    <input type="number" step="any" class="form-input" name="work_longitude" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">마감일</label>
+                    <input type="datetime-local" class="form-input" name="deadline">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">최대 모집인원</label>
+                    <input type="number" class="form-input" name="max_applicants" placeholder="비워두면 무제한">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" name="auto_approval" style="margin-right: 0.5rem;"> 자동 승인
+                    </label>
+                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;">체크하면 신청 즉시 자동으로 승인됩니다.</small>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeCreateModal()">취소</button>
+                <button class="btn-primary" onclick="submitJob()">등록</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let userLocation = null;
+        let isLoggedIn = false;
+        let currentUser = null;
+
+        // 페이지 로드 시 초기화
+        window.onload = function() {
+            checkAuth();
+            loadJobs();
+            
+            // 검색 입력 이벤트
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchJobs();
+                }
+            });
+        };
+
+        // 인증 확인
+        function checkAuth() {
+            const token = localStorage.getItem('employee_token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            fetch('/api/auth/verify', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Token invalid');
+                }
+                return response.json();
+            })
+            .then(user => {
+                currentUser = user;
+                isLoggedIn = true;
+                
+                // 관리자인 경우 공고 등록 버튼 보이기
+                if (user.role === 'admin' || user.role === 'manager') {
+                    document.getElementById('createJobBtn').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                localStorage.removeItem('employee_token');
+                window.location.href = '/login';
+            });
+        }
+
+        // 채용 공고 목록 로드
+        async function loadJobs(page = 1, search = '', useLocation = true) {
+            try {
+                let url = `/api/jobs?page=${page}&limit=12`;
+                
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+                
+                if (useLocation && userLocation) {
+                    url += `&latitude=${userLocation.latitude}&longitude=${userLocation.longitude}&radius=20`;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success) {
+                    // 각 공고에 대해 지원 상태 확인
+                    await checkApplicationStatuses(data.job_posts);
+                    displayJobs(data.job_posts);
+                    displayPagination(data.page, data.total_pages);
+                } else {
+                    document.getElementById('jobGrid').innerHTML = '<div class="loading">채용 공고를 불러올 수 없습니다.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                document.getElementById('jobGrid').innerHTML = '<div class="loading">오류가 발생했습니다.</div>';
+            }
+        }
+
+        // 지원 상태 확인
+        async function checkApplicationStatuses(jobs) {
+            console.log('Checking application statuses for jobs:', jobs);
+            if (!isLoggedIn) {
+                console.log('User not logged in');
+                return;
+            }
+            
+            const token = localStorage.getItem('employee_token');
+            if (!token) {
+                console.log('No employee token found');
+                return;
+            }
+
+            for (let job of jobs) {
+                try {
+                    console.log(`Checking status for job ${job.id}`);
+                    const response = await fetch(`/api/jobs/${job.id}/application-status`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    console.log(`Job ${job.id} status response:`, response.status);
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log(`Job ${job.id} status result:`, result);
+                        job.has_applied = result.has_applied;
+                        job.application_info = result.application;
+                    } else {
+                        console.error(`Job ${job.id} status check failed:`, response.status, response.statusText);
+                    }
+                } catch (error) {
+                    console.error(`Error checking application status for job ${job.id}:`, error);
+                }
+            }
+        }
+
+        // 채용 공고 표시
+        function displayJobs(jobs) {
+            const jobGrid = document.getElementById('jobGrid');
+            
+            if (jobs.length === 0) {
+                jobGrid.innerHTML = '<div class="loading">검색 결과가 없습니다.</div>';
+                return;
+            }
+
+            let html = '';
+            jobs.forEach(job => {
+                const deadline = job.deadline ? new Date(job.deadline).toLocaleDateString('ko-KR') : '상시모집';
+                const maxApplicants = job.max_applicants ? `${job.max_applicants}명` : '무제한';
+                const approvalText = job.auto_approval ? '자동승인' : '직접승인';
+                
+                // 상태 확인 (직접 계산)
+                const now = new Date();
+                const deadlineDate = job.deadline ? new Date(job.deadline) : null;
+                const isExpired = deadlineDate && deadlineDate < now;
+                const approvedCount = job.application_stats ? 
+                    (job.application_stats.approved + job.application_stats.working + job.application_stats.completed) : 
+                    (job.approved_count || 0);
+                const isFull = job.max_applicants && approvedCount >= job.max_applicants;
+                const isManuallyClosed = job.manually_closed;
+                
+                let statusText, statusClass, canApply;
+                
+                if (isManuallyClosed) {
+                    statusText = '운영자 마감';
+                    statusClass = 'status-closed';
+                    canApply = false;
+                } else if (isExpired) {
+                    statusText = '마감됨';
+                    statusClass = 'status-expired';
+                    canApply = false;
+                } else if (isFull) {
+                    statusText = '인원마감';
+                    statusClass = 'status-full';
+                    canApply = false;
+                } else {
+                    statusText = '신청가능';
+                    statusClass = 'status-active';
+                    canApply = true;
+                }
+                const distance = job.distance ? `${job.distance.toFixed(1)}km` : '';
+                const maxApplicantsText = job.max_applicants ? `(최대 ${job.max_applicants}명)` : '';
+                
+                html += `
+                    <div class="job-card ${!canApply ? 'job-disabled' : ''}" onclick="viewJobDetail(${job.id})">
+                        <div class="job-header">
+                            <div>
+                                <div class="job-title">${job.title}</div>
+                                <div class="company-name">${job.company_name}</div>
+                            </div>
+                            <div class="job-meta">
+                                <div class="job-status ${statusClass}">${statusText}</div>
+                                <div>마감: ${deadline}</div>
+                                ${distance ? `<div>거리: ${distance}</div>` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="job-description">${job.description}</div>
+                        
+                        <div class="job-details">
+                            ${job.salary ? `<div class="job-detail"><strong>급여</strong>${job.salary}</div>` : ''}
+                            ${job.work_hours ? `<div class="job-detail"><strong>근무시간</strong>${job.work_hours}</div>` : ''}
+                            ${job.work_period ? `<div class="job-detail"><strong>근무기간</strong>${job.work_period}</div>` : ''}
+                        </div>
+                        
+                        <div class="job-location">
+                            위치: ${job.work_address}
+                        </div>
+                        
+                        <div class="job-footer">
+                            <div class="job-stats">
+                                <div>신청: ${job.application_count}명 / 승인: ${job.approved_count || 0}명 ${maxApplicantsText}</div>
+                                <div>${approvalText} | ${new Date(job.created_at).toLocaleDateString('ko-KR')} 등록</div>
+                            </div>
+                            <button class="apply-btn ${job.has_applied ? 'apply-disabled' : (!canApply ? 'apply-disabled' : '')}" 
+                                    ${job.has_applied ? 'disabled' : (canApply ? `onclick="event.stopPropagation(); applyToJob(${job.id})"` : 'disabled')} >
+                                ${job.has_applied ? '지원 완료' : (canApply ? '지원하기' : statusText)}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            jobGrid.innerHTML = html;
+        }
+
+        // 페이지네이션 표시
+        function displayPagination(currentPage, totalPages) {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+
+            // 이전 페이지
+            if (currentPage > 1) {
+                html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})">이전</button>`;
+            }
+
+            // 페이지 번호
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const active = i === currentPage ? 'active' : '';
+                html += `<button class="page-btn ${active}" onclick="goToPage(${i})">${i}</button>`;
+            }
+
+            // 다음 페이지
+            if (currentPage < totalPages) {
+                html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})">다음</button>`;
+            }
+
+            pagination.innerHTML = html;
+        }
+
+        // 페이지 이동
+        function goToPage(page) {
+            currentPage = page;
+            const search = document.getElementById('searchInput').value;
+            loadJobs(page, search);
+        }
+
+        // 검색
+        function searchJobs() {
+            const search = document.getElementById('searchInput').value;
+            currentPage = 1;
+            loadJobs(1, search);
+        }
+
+        // 위치 정보 가져오기
+        function getLocation() {
+            const statusEl = document.getElementById('locationStatus');
+            
+            if (!navigator.geolocation) {
+                statusEl.textContent = '위치 서비스를 지원하지 않는 브라우저입니다.';
+                return;
+            }
+
+            statusEl.textContent = '위치 정보를 가져오는 중...';
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    userLocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+                    statusEl.textContent = `위치: ${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)} (반경 20km 내 검색)`;
+                    
+                    // 위치 기반으로 다시 검색
+                    const search = document.getElementById('searchInput').value;
+                    loadJobs(1, search, true);
+                },
+                function(error) {
+                    statusEl.textContent = '위치 정보를 가져올 수 없습니다.';
+                    console.error('Location error:', error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000
+                }
+            );
+        }
+
+        // 채용 공고 상세 보기
+        function viewJobDetail(jobId) {
+            window.location.href = `/jobs/${jobId}`;
+        }
+
+        // 채용 공고 지원
+        async function applyToJob(jobId) {
+            if (!isLoggedIn) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch(`/api/jobs/${jobId}/apply`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    
+                    // 자동 승인이고 결제 URL이 있는 경우 결제 페이지로 이동
+                    if (result.auto_approved && result.payment_url) {
+                        if (confirm('자동으로 승인되었습니다! 지금 보증금을 결제하시겠습니까?')) {
+                            window.open(result.payment_url, '_self');
+                        }
+                    } else if (!result.auto_approved) {
+                        alert('관리자 승인 후 보증금 결제가 가능합니다.');
+                    }
+                    
+                    // 목록 새로고침
+                    loadJobs(currentPage);
+                } else {
+                    alert(result.detail || '지원 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Apply error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+
+        // 공고 등록 모달 열기
+        function openCreateModal() {
+            if (!isLoggedIn) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+            
+            // 관리자 권한 확인
+            if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'manager')) {
+                alert('공고 등록 권한이 없습니다. 관리자만 공고를 등록할 수 있습니다.');
+                return;
+            }
+            
+            document.getElementById('createModal').style.display = 'flex';
+        }
+
+        // 공고 등록 모달 닫기
+        function closeCreateModal() {
+            document.getElementById('createModal').style.display = 'none';
+            document.getElementById('createForm').reset();
+        }
+
+        // 주소로 좌표 찾기
+        async function getAddressCoordinates() {
+            const address = document.querySelector('[name="work_address"]').value;
+            if (!address) {
+                alert('주소를 입력해주세요.');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch('/api/geocoding/address-to-coordinates', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        address: address
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    document.querySelector('[name="work_latitude"]').value = result.latitude;
+                    document.querySelector('[name="work_longitude"]').value = result.longitude;
+                    alert(`좌표가 설정되었습니다.\n위도: ${result.latitude}\n경도: ${result.longitude}`);
+                } else {
+                    alert(result.message || '주소를 찾을 수 없습니다.');
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                alert('주소 변환 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 채용 공고 등록
+        async function submitJob() {
+            const form = document.getElementById('createForm');
+            const formData = new FormData(form);
+            
+            const jobData = {
+                title: formData.get('title'),
+                company_name: formData.get('company_name'),
+                description: formData.get('description'),
+                requirements: formData.get('requirements'),
+                salary: formData.get('salary'),
+                work_hours: formData.get('work_hours'),
+                work_address: formData.get('work_address'),
+                work_latitude: parseFloat(formData.get('work_latitude')),
+                work_longitude: parseFloat(formData.get('work_longitude')),
+                deadline: formData.get('deadline') || null,
+                max_applicants: formData.get('max_applicants') ? parseInt(formData.get('max_applicants')) : null,
+                auto_approval: formData.has('auto_approval')
+            };
+
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch('/api/jobs', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(jobData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    closeCreateModal();
+                    loadJobs(1); // 목록 새로고침
+                } else {
+                    alert(result.detail || '등록 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Create job error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            console.log('Logout function called');
+            try {
+                localStorage.removeItem('employee_token');
+                localStorage.removeItem('admin_token');
+                localStorage.clear(); // 모든 토큰 제거
+                console.log('Tokens cleared, redirecting to login...');
+                window.location.href = '/login';
+            } catch (error) {
+                console.error('Logout error:', error);
+                // 오류가 발생해도 로그인 페이지로 이동
+                window.location.href = '/login';
+            }
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('createModal');
+            if (event.target === modal) {
+                closeCreateModal();
+            }
+        }
+    </script>
+</body>
+</html>

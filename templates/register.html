@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS 회원가입</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            color: #212529;
+        }
+        
+        .register-container {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            color: #212529;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .logo p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #495057;
+            box-shadow: 0 0 0 0.2rem rgba(73, 80, 87, 0.25);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: white;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: #495057;
+            box-shadow: 0 0 0 0.2rem rgba(73, 80, 87, 0.25);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-primary {
+            background: #212529;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #495057;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .login-link a {
+            color: #495057;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .form-help {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="logo">
+            <h1>HRMS 회원가입</h1>
+            <p>인력관리 시스템</p>
+        </div>
+        
+        <div id="alertContainer"></div>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label class="form-label">사용자명 <span class="required">*</span></label>
+                <input type="text" class="form-input" id="username" name="username" required 
+                       placeholder="영문, 숫자 조합 4자 이상" autocomplete="username">
+                <div class="form-help">영문자와 숫자만 사용 가능합니다.</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">이메일 <span class="required">*</span></label>
+                <input type="email" class="form-input" id="email" name="email" required 
+                       placeholder="example@company.com" autocomplete="email">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">성명 <span class="required">*</span></label>
+                <input type="text" class="form-input" id="fullName" name="fullName" required 
+                       placeholder="홍길동" autocomplete="name">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">비밀번호 <span class="required">*</span></label>
+                <input type="password" class="form-input" id="password" name="password" required 
+                       placeholder="8자 이상, 영문+숫자 조합" autocomplete="new-password">
+                <div class="form-help">8자 이상, 영문자와 숫자를 포함해야 합니다.</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">비밀번호 확인 <span class="required">*</span></label>
+                <input type="password" class="form-input" id="confirmPassword" name="confirmPassword" required 
+                       placeholder="비밀번호를 다시 입력하세요" autocomplete="new-password">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">직원번호</label>
+                <input type="text" class="form-input" id="employeeNumber" name="employeeNumber" 
+                       placeholder="자동 생성됩니다 (선택사항)">
+                <div class="form-help">비워두면 자동으로 생성됩니다.</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">부서</label>
+                <select class="form-select" id="department" name="department">
+                    <option value="">부서 선택</option>
+                    <option value="개발팀">개발팀</option>
+                    <option value="영업팀">영업팀</option>
+                    <option value="마케팅팀">마케팅팀</option>
+                    <option value="인사팀">인사팀</option>
+                    <option value="재무팀">재무팀</option>
+                    <option value="기타">기타</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">직급</label>
+                <input type="text" class="form-input" id="position" name="position" 
+                       placeholder="예: 사원, 대리, 과장 등">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">연락처</label>
+                <input type="tel" class="form-input" id="phone" name="phone" 
+                       placeholder="010-1234-5678" autocomplete="tel">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="registerBtn">
+                회원가입
+            </button>
+            
+            <button type="button" class="btn btn-secondary" onclick="goToLogin()">
+                로그인 페이지로
+            </button>
+        </form>
+        
+        <div class="login-link">
+            <a href="/login">이미 계정이 있으신가요? 로그인</a>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e9ecef; font-size: 0.8rem; color: #6c757d;">
+            © 2025 k-j-hyun & JJPartners. All rights reserved.
+        </div>
+    </div>
+
+    <script>
+        // 폼 제출 이벤트
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const registerBtn = document.getElementById('registerBtn');
+            
+            // 유효성 검사
+            if (!validateForm(formData)) {
+                return;
+            }
+            
+            registerBtn.disabled = true;
+            registerBtn.textContent = '가입 중...';
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: formData.get('username'),
+                        email: formData.get('email'),
+                        full_name: formData.get('fullName'),
+                        password: formData.get('password'),
+                        employee_number: formData.get('employeeNumber') || null,
+                        department: formData.get('department') || null,
+                        position: formData.get('position') || null,
+                        phone: formData.get('phone') || null
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    showAlert(result.detail || '회원가입에 실패했습니다.', 'danger');
+                }
+                
+            } catch (error) {
+                console.error('Register error:', error);
+                showAlert('서버 연결에 실패했습니다.', 'danger');
+            }
+            
+            registerBtn.disabled = false;
+            registerBtn.textContent = '회원가입';
+        });
+        
+        // 폼 유효성 검사
+        function validateForm(formData) {
+            const username = formData.get('username');
+            const email = formData.get('email');
+            const fullName = formData.get('fullName');
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmPassword');
+            
+            // 필수 필드 확인
+            if (!username || !email || !fullName || !password || !confirmPassword) {
+                showAlert('모든 필수 항목을 입력해주세요.', 'danger');
+                return false;
+            }
+            
+            // 사용자명 검증
+            if (username.length < 4 || !/^[a-zA-Z0-9]+$/.test(username)) {
+                showAlert('사용자명은 4자 이상의 영문자와 숫자만 사용 가능합니다.', 'danger');
+                return false;
+            }
+            
+            // 이메일 검증
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showAlert('올바른 이메일 주소를 입력해주세요.', 'danger');
+                return false;
+            }
+            
+            // 비밀번호 검증
+            if (password.length < 8 || !/(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
+                showAlert('비밀번호는 8자 이상이며 영문자와 숫자를 포함해야 합니다.', 'danger');
+                return false;
+            }
+            
+            // 비밀번호 확인
+            if (password !== confirmPassword) {
+                showAlert('비밀번호가 일치하지 않습니다.', 'danger');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 알림 표시
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+        
+        // 로그인 페이지로 이동
+        function goToLogin() {
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>

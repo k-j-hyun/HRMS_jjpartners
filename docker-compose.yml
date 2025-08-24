@@ -1,0 +1,24 @@
+# Docker Compose 설정
+version: '3.8'
+
+services:
+  flowmate:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./hrms_attendance.db
+      - SECRET_KEY=your-secret-key-here
+      - NAVER_PAY_CLIENT_ID=your-naver-client-id
+      - NAVER_PAY_CLIENT_SECRET=your-naver-client-secret
+      - NAVER_PAY_MERCHANT_ID=your-merchant-id
+      - BASE_URL=https://yourdomain.com
+    volumes:
+      - ./hrms_attendance.db:/app/hrms_attendance.db
+      - ./static:/app/static
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

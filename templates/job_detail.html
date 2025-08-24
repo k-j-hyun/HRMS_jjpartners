@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - 채용 공고 상세</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: #212529;
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .job-detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .job-header {
+            border-bottom: 2px solid #f1f3f4;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .job-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .company-name {
+            font-size: 1.2rem;
+            color: #495057;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        
+        .job-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .meta-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .meta-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .meta-value {
+            color: #212529;
+        }
+        
+        .job-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-full {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-closed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .section {
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+        
+        .description {
+            white-space: pre-wrap;
+            line-height: 1.8;
+            color: #495057;
+        }
+        
+        .apply-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .apply-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+        
+        .apply-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .apply-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .job-meta {
+                grid-template-columns: 1fr;
+            }
+            
+            .job-title {
+                font-size: 1.5rem;
+            }
+            
+            .container {
+                padding: 1rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="title">HRMS - 채용 공고</div>
+            <div class="nav-buttons">
+                <a href="/jobs" class="nav-btn">목록으로</a>
+                <a href="/employee" class="nav-btn">근태관리</a>
+                <a href="/my-applications" class="nav-btn">나의 신청</a>
+                <button onclick="logout()" class="nav-btn" id="logoutBtn">로그아웃</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="jobDetail">
+            <div class="loading">채용 공고를 불러오는 중...</div>
+        </div>
+    </div>
+
+    <!-- 즉시 실행 스크립트 -->
+    <script>
+        console.log('Immediate script executing...');
+        
+        // URL에서 Job ID 추출
+        const url = window.location.pathname;
+        const jobIdMatch = url.match(/\/jobs\/(\d+)/);
+        
+        if (jobIdMatch) {
+            const currentJobId = parseInt(jobIdMatch[1]);
+            console.log('Found job ID:', currentJobId);
+            
+            // 즉시 API 호출
+            fetch('/api/jobs/' + currentJobId)
+                .then(response => {
+                    console.log('API Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('API Response data:', data);
+                    if (data.success) {
+                        displayJobContent(data.job_post);
+                    } else {
+                        document.getElementById('jobDetail').innerHTML = '<div class="error">채용 공고를 찾을 수 없습니다.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('API Error:', error);
+                    document.getElementById('jobDetail').innerHTML = '<div class="error">채용 공고를 불러오는 중 오류가 발생했습니다.</div>';
+                });
+        } else {
+            console.error('Job ID not found in URL');
+            document.getElementById('jobDetail').innerHTML = '<div class="error">잘못된 접근입니다.</div>';
+        }
+        
+        function displayJobContent(job) {
+            console.log('Displaying job content:', job);
+            
+            // 공고 상태 판단 로직
+            let statusText = '신청가능';
+            let statusColor = '#4CAF50';
+            let canApply = true;
+            
+            // 1. 수동 마감 확인
+            if (job.manually_closed) {
+                statusText = '운영자 마감';
+                statusColor = '#dc3545';
+                canApply = false;
+            }
+            // 2. 마감일 확인
+            else if (job.deadline) {
+                const now = new Date();
+                const deadline = new Date(job.deadline);
+                if (deadline < now) {
+                    statusText = '마감됨';
+                    statusColor = '#6c757d';
+                    canApply = false;
+                }
+            }
+            // 3. 인원 확인
+            else if (job.max_applicants) {
+                const stats = job.application_stats || {};
+                const approvedCount = (stats.approved || 0) + (stats.working || 0) + (stats.completed || 0);
+                if (approvedCount >= job.max_applicants) {
+                    statusText = '인원마감';
+                    statusColor = '#ffc107';
+                    canApply = false;
+                }
+            }
+            
+            const deadline = job.deadline ? new Date(job.deadline).toLocaleDateString('ko-KR') : '상시모집';
+            const maxApplicants = job.max_applicants ? `${job.max_applicants}명` : '무제한';
+            const approvalText = job.auto_approval ? '자동승인' : '직접승인';
+
+            const html = `
+                <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <div style="border-bottom: 2px solid ${statusColor}; padding-bottom: 1rem; margin-bottom: 2rem;">
+                        <h1 style="color: #2c3e50; margin: 0 0 0.5rem 0; font-size: 2rem;">${job.title}</h1>
+                        <h2 style="color: ${statusColor}; margin: 0; font-size: 1.3rem; font-weight: 600;">${job.company_name}</h2>
+                        <div style="background: ${statusColor}; color: white; padding: 0.5rem 1rem; border-radius: 6px; display: inline-block; margin-top: 1rem; font-weight: 600;">${statusText}</div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                            <div style="font-weight: 600; color: #6c757d; margin-bottom: 0.5rem;">모집 마감</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${deadline}</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                            <div style="font-weight: 600; color: #6c757d; margin-bottom: 0.5rem;">모집 인원</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${maxApplicants}</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                            <div style="font-weight: 600; color: #6c757d; margin-bottom: 0.5rem;">승인 방식</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${approvalText}</div>
+                        </div>
+                        ${job.salary ? `<div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                            <div style="font-weight: 600; color: #6c757d; margin-bottom: 0.5rem;">급여</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${job.salary}</div>
+                        </div>` : ''}
+                        ${job.work_hours ? `<div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                            <div style="font-weight: 600; color: #6c757d; margin-bottom: 0.5rem;">근무시간</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${job.work_hours}</div>
+                        </div>` : ''}
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: #2c3e50; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e9ecef;">업무 내용</h3>
+                        <div style="line-height: 1.6; color: #495057;">${job.description}</div>
+                    </div>
+
+                    ${job.requirements ? `
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: #2c3e50; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e9ecef;">자격 요건</h3>
+                        <div style="line-height: 1.6; color: #495057;">${job.requirements}</div>
+                    </div>
+                    ` : ''}
+
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: #2c3e50; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e9ecef;">근무지</h3>
+                        <div style="line-height: 1.6; color: #495057;">${job.work_address}</div>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: #2c3e50; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e9ecef;">작성자 정보</h3>
+                        <div style="line-height: 1.6; color: #495057;">
+                            담당자: ${job.author ? job.author.name : '정보 없음'}<br>
+                            등록일: ${new Date(job.created_at).toLocaleDateString('ko-KR')}<br>
+                            수정일: ${new Date(job.updated_at).toLocaleDateString('ko-KR')}
+                        </div>
+                    </div>
+
+                    <div id="applySection" style="text-align: center; padding: 2rem; border-top: 1px solid #e9ecef;">
+                        <h3 style="margin-bottom: 1rem;">이 공고에 지원하시겠습니까?</h3>
+                        <p style="color: #6c757d; margin-bottom: 2rem;">
+                            ${job.auto_approval ? 
+                                '자동승인 공고입니다. 신청 즉시 승인되며 보증금 결제 후 근무가 시작됩니다.' : 
+                                '직접승인 공고입니다. 관리자 승인 후 보증금 결제가 가능합니다.'
+                            }
+                        </p>
+                        <div id="applyButtonArea">
+                            ${getApplyButtonHTML(canApply, statusText, job.id, job.auto_approval)}
+                        </div>
+                        ${!canApply ? `<p style="color: #dc3545; margin-top: 1rem; font-size: 0.9rem;">이 공고는 더 이상 신청할 수 없습니다.</p>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('jobDetail').innerHTML = html;
+            
+            // 사용자 인증 상태 확인 후 지원 버튼 업데이트
+            checkUserStatusAndUpdateButton(job.id, job.auto_approval, canApply, statusText);
+        }
+        
+        function getApplyButtonHTML(canApply, statusText, jobId, autoApproval) {
+            if (!canApply) {
+                return `<button style="background: #6c757d; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: not-allowed;" disabled>
+                    ${statusText}
+                </button>`;
+            } else {
+                return `<button id="applyButton" style="background: #28a745; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer;" onclick="handleApplyClick(${jobId}, ${autoApproval})">
+                    지원하기
+                </button>`;
+            }
+        }
+        
+        async function checkUserStatusAndUpdateButton(jobId, autoApproval, canApply, statusText) {
+            console.log('Checking user status for job:', jobId);
+            
+            // 토큰 확인
+            const token = localStorage.getItem('employee_token');
+            if (!token) {
+                console.log('No token found - guest user');
+                if (canApply) {
+                    updateApplyButton('로그인 후 지원하기', '#007bff', 'showLoginAlert()', false);
+                }
+                return;
+            }
+            
+            try {
+                // 사용자 지원 상태 확인
+                const response = await fetch(`/api/jobs/${jobId}/application-status`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Application status:', data);
+                    
+                    if (data.has_applied) {
+                        updateButtonBasedOnApplicationStatus(data.application, autoApproval);
+                    } else if (canApply) {
+                        updateApplyButton('지원하기', '#28a745', `applyToJob(${jobId}, ${autoApproval})`, false);
+                    }
+                } else if (response.status === 401) {
+                    // 토큰 무효
+                    localStorage.removeItem('employee_token');
+                    updateApplyButton('로그인 후 지원하기', '#007bff', 'showLoginAlert()', false);
+                }
+            } catch (error) {
+                console.error('Error checking application status:', error);
+                // 오류 발생 시 기본 버튼 표시
+                if (canApply) {
+                    updateApplyButton('지원하기', '#28a745', `applyToJob(${jobId}, ${autoApproval})`, false);
+                }
+            }
+        }
+        
+        function updateButtonBasedOnApplicationStatus(application, autoApproval) {
+            const status = application.status;
+            
+            switch(status) {
+                case 'pending':
+                    if (autoApproval) {
+                        updateApplyButton('승인 처리중...', '#ffc107', '', true);
+                    } else {
+                        updateApplyButton('승인 대기중', '#ffc107', '', true);
+                    }
+                    break;
+                case 'approved':
+                    if (application.payment_status === 'paid') {
+                        updateApplyButton('근무 대기중', '#17a2b8', '', true);
+                    } else {
+                        updateApplyButton('보증금 결제하기', '#fd7e14', `proceedToPayment(${application.id})`, false);
+                    }
+                    break;
+                case 'working':
+                    updateApplyButton('근무중', '#28a745', '', true);
+                    break;
+                case 'completed':
+                    updateApplyButton('근무 완료', '#6c757d', '', true);
+                    break;
+                case 'rejected':
+                    updateApplyButton('지원 거절됨', '#dc3545', '', true);
+                    break;
+                default:
+                    updateApplyButton('지원하기', '#28a745', `applyToJob(${application.job_post_id}, ${autoApproval})`, false);
+            }
+        }
+        
+        function updateApplyButton(text, color, onclick, disabled) {
+            let button = document.getElementById('applyButton') || document.getElementById('mainApplyButton');
+            if (button) {
+                button.textContent = text;
+                button.style.background = color;
+                button.style.cursor = disabled ? 'not-allowed' : 'pointer';
+                button.disabled = disabled;
+                if (onclick && !disabled) {
+                    button.setAttribute('onclick', onclick);
+                } else {
+                    button.removeAttribute('onclick');
+                }
+            }
+        }
+        
+        async function checkApplicationStatusAndUpdateButton(jobId, autoApproval, canApply, statusText) {
+            console.log(`Checking application status for job ${jobId}`);
+            const token = localStorage.getItem('employee_token');
+            if (!token) {
+                console.log('No token found');
+                if (canApply) {
+                    updateApplyButton('로그인 후 지원하기', '#007bff', 'showLoginAlert()', false);
+                }
+                return;
+            }
+            
+            try {
+                console.log(`Fetching application status for job ${jobId}`);
+                const response = await fetch(`/api/jobs/${jobId}/application-status`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                console.log(`Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Application status data:', data);
+                    
+                    if (data.has_applied) {
+                        console.log('User has applied, updating button based on status');
+                        updateButtonBasedOnApplicationStatus(data.application, autoApproval);
+                    } else if (canApply) {
+                        console.log('User has not applied, showing apply button');
+                        updateApplyButton('지원하기', '#28a745', `applyToJob(${jobId})`, false);
+                    }
+                } else if (response.status === 401) {
+                    console.log('Unauthorized, removing token');
+                    localStorage.removeItem('employee_token');
+                    updateApplyButton('로그인 후 지원하기', '#007bff', 'showLoginAlert()', false);
+                } else {
+                    console.error('Failed to check application status:', response.status, response.statusText);
+                    if (canApply) {
+                        updateApplyButton('지원하기', '#28a745', `applyToJob(${jobId})`, false);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking application status:', error);
+                if (canApply) {
+                    updateApplyButton('지원하기', '#28a745', `applyToJob(${jobId})`, false);
+                }
+            }
+        }
+        
+        function handleApplyClick(jobId, autoApproval) {
+            const token = localStorage.getItem('employee_token');
+            if (!token) {
+                showLoginAlert();
+                return;
+            }
+            applyToJob(jobId);
+        }
+        
+        function showLoginAlert() {
+            alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+            window.location.href = '/login';
+        }
+        
+        async function applyToJob(jobId, autoApproval) {
+            const token = localStorage.getItem('employee_token');
+            if (!token) {
+                showLoginAlert();
+                return;
+            }
+            
+            if (!confirm('이 공고에 지원하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                updateApplyButton('지원 처리중...', '#6c757d', '', true);
+                
+                const response = await fetch(`/api/jobs/${jobId}/apply`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('지원이 완료되었습니다!');
+                    
+                    // 자동승인인 경우
+                    if (autoApproval) {
+                        updateApplyButton('승인 완료 - 보증금 결제하기', '#fd7e14', `proceedToPayment(${data.application_id})`, false);
+                    } else {
+                        updateApplyButton('승인 대기중', '#ffc107', '', true);
+                    }
+                } else {
+                    alert(data.message || '지원 중 오류가 발생했습니다.');
+                    updateApplyButton('지원하기', '#28a745', `applyToJob(${jobId}, ${autoApproval})`, false);
+                }
+            } catch (error) {
+                console.error('Apply error:', error);
+                alert('지원 중 오류가 발생했습니다.');
+                updateApplyButton('지원하기', '#28a745', `applyToJob(${jobId}, ${autoApproval})`, false);
+            }
+        }
+        
+        async function proceedToPayment(applicationId) {
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch(`/api/payment/start/${applicationId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // 결제 페이지로 리다이렉트
+                    window.location.href = result.payment_url || `/payment/complete?applicationId=${applicationId}&status=success`;
+                } else {
+                    alert(result.message || '결제 시작 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Payment start error:', error);
+                alert('결제 시작 중 오류가 발생했습니다.');
+            }
+        }
+    </script>
+
+    <script>
+        let currentUser = null;
+        let jobId = null;
+
+        console.log('Script loaded');
+        
+        // URL에서 job ID 추출
+        const pathParts = window.location.pathname.split('/');
+        jobId = parseInt(pathParts[pathParts.length - 1]);
+        
+        console.log('Extracted jobId:', jobId);
+
+        // 페이지 로드 후 즉시 실행
+        setTimeout(function() {
+            console.log('Timeout fired, loading job detail');
+            if (jobId) {
+                loadJobDetail();
+            }
+        }, 100);
+
+        // 비동기 인증 확인 (페이지 로드를 차단하지 않음)
+        async function checkAuthAsync() {
+            // 직원 토큰 또는 관리자 토큰 확인
+            let token = localStorage.getItem('employee_token');
+            let tokenType = 'employee';
+            
+            if (!token) {
+                token = localStorage.getItem('admin_token');
+                tokenType = 'admin';
+            }
+            
+            console.log('Token type:', tokenType, 'Token exists:', !!token);
+            
+            if (!token) {
+                console.log('No token found - viewing as guest');
+                return;
+            }
+
+            try {
+                console.log('Verifying token...');
+                const response = await fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                console.log('Auth verify response status:', response.status);
+
+                if (response.ok) {
+                    const user = await response.json();
+                    console.log('User verified:', user);
+                    currentUser = user;
+                    
+                    // 인증된 사용자인 경우 UI 업데이트
+                    updateUIForAuthenticatedUser();
+                } else {
+                    throw new Error('Token invalid');
+                }
+                
+            } catch (error) {
+                console.error('Auth error:', error);
+                if (tokenType === 'employee') {
+                    localStorage.removeItem('employee_token');
+                } else {
+                    localStorage.removeItem('admin_token');
+                }
+                console.log('Auth failed - continuing as guest');
+                currentUser = null;
+            }
+        }
+
+        // 인증된 사용자를 위한 UI 업데이트
+        function updateUIForAuthenticatedUser() {
+            // 신청 버튼 등의 UI 요소를 활성화
+            const applyButton = document.querySelector('.apply-button');
+            if (applyButton) {
+                applyButton.style.display = 'block';
+            }
+        }
+
+        // 인증 확인 (기존 함수 유지)
+        function checkAuth() {
+            const token = localStorage.getItem('employee_token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            fetch('/api/auth/verify', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Token invalid');
+                }
+                return response.json();
+            })
+            .then(user => {
+                currentUser = user;
+            })
+            .catch(error => {
+                localStorage.removeItem('employee_token');
+                window.location.href = '/login';
+            });
+        }
+
+        // 채용 공고 상세 정보 로드
+        async function loadJobDetail() {
+            console.log('=== loadJobDetail START ===');
+            console.log('loadJobDetail called with jobId:', jobId);
+            
+            // DOM 요소가 있는지 확인
+            const jobDetailElement = document.getElementById('jobDetail');
+            console.log('jobDetail element found:', !!jobDetailElement);
+            
+            if (!jobDetailElement) {
+                console.error('jobDetail element not found!');
+                return;
+            }
+            
+            try {
+                console.log('Making fetch request to:', `/api/jobs/${jobId}`);
+                const response = await fetch(`/api/jobs/${jobId}`);
+                console.log('Response received - status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                const data = await response.json();
+                console.log('Response data parsed:', data);
+
+                if (data.success) {
+                    console.log('Success - calling displayJobDetail');
+                    displayJobDetail(data.job_post);
+                    console.log('displayJobDetail completed');
+                } else {
+                    console.log('API returned success=false');
+                    showError('채용 공고를 찾을 수 없습니다.');
+                }
+            } catch (error) {
+                console.error('Error loading job detail:', error);
+                showError('채용 공고를 불러오는 중 오류가 발생했습니다.');
+            }
+            console.log('=== loadJobDetail END ===');
+        }
+
+        // 채용 공고 상세 정보 표시
+        function displayJobDetail(job) {
+            // 상태 정보 (JobBoardService의 _get_job_status와 동일하게 처리)
+            let statusText = '신청가능';
+            let statusClass = 'status-active';
+            let canApply = true;
+            
+            // 마감일 확인
+            const now = new Date();
+            const deadline = job.deadline ? new Date(job.deadline) : null;
+            const isExpired = deadline && deadline < now;
+            
+            // 인원 확인
+            const stats = job.application_stats || {approved: 0, working: 0, completed: 0};
+            const approvedCount = stats.approved + stats.working + stats.completed;
+            const isFull = job.max_applicants && approvedCount >= job.max_applicants;
+            
+            // 수동 마감 확인 (manually_closed 필드 추가 필요)
+            const isManuallyClosed = job.manually_closed;
+            
+            if (isManuallyClosed) {
+                statusText = '운영자 마감';
+                statusClass = 'status-closed';
+                canApply = false;
+            } else if (isExpired) {
+                statusText = '마감됨';
+                statusClass = 'status-expired';
+                canApply = false;
+            } else if (isFull) {
+                statusText = '인원마감';
+                statusClass = 'status-full';
+                canApply = false;
+            } else {
+                statusText = '신청가능';
+                statusClass = 'status-active';
+                canApply = true;
+            }
+
+            const deadline = job.deadline ? new Date(job.deadline).toLocaleDateString('ko-KR') : '상시모집';
+            const maxApplicants = job.max_applicants ? `${job.max_applicants}명` : '무제한';
+            const approvalText = job.auto_approval ? '자동승인' : '직접승인';
+
+            const html = `
+                <div class="job-detail-card">
+                    <div class="job-header">
+                        <div class="job-title">${job.title}</div>
+                        <div class="company-name">${job.company_name}</div>
+                        <div class="job-status ${statusClass}">${statusText}</div>
+                        
+                        <div class="job-meta">
+                            <div class="meta-item">
+                                <div class="meta-label">모집 마감</div>
+                                <div class="meta-value">${deadline}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">모집 인원</div>
+                                <div class="meta-value">${maxApplicants}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">승인 방식</div>
+                                <div class="meta-value">${approvalText}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">신청자 수</div>
+                                <div class="meta-value">${job.application_stats.total}명 (승인: ${job.application_stats.approved}명)</div>
+                            </div>
+                            ${job.salary ? `<div class="meta-item">
+                                <div class="meta-label">급여</div>
+                                <div class="meta-value">${job.salary}</div>
+                            </div>` : ''}
+                            ${job.work_hours ? `<div class="meta-item">
+                                <div class="meta-label">근무시간</div>
+                                <div class="meta-value">${job.work_hours}</div>
+                            </div>` : ''}
+                            ${job.work_period ? `<div class="meta-item">
+                                <div class="meta-label">근무기간</div>
+                                <div class="meta-value">${job.work_period}</div>
+                            </div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">업무 내용</div>
+                        <div class="description">${job.description}</div>
+                    </div>
+
+                    ${job.requirements ? `
+                    <div class="section">
+                        <div class="section-title">자격 요건</div>
+                        <div class="description">${job.requirements}</div>
+                    </div>
+                    ` : ''}
+
+                    <div class="section">
+                        <div class="section-title">근무지</div>
+                        <div class="description">${job.work_address}</div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">작성자 정보</div>
+                        <div class="description">
+                            담당자: ${job.author ? job.author.name : '정보 없음'}<br>
+                            등록일: ${new Date(job.created_at).toLocaleDateString('ko-KR')}<br>
+                            수정일: ${new Date(job.updated_at).toLocaleDateString('ko-KR')}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="apply-section">
+                    <h3>이 공고에 지원하시겠습니까?</h3>
+                    <p style="color: #6c757d; margin: 1rem 0;">
+                        ${job.auto_approval ? 
+                            '자동승인 공고입니다. 신청 즉시 승인되며 보증금 결제 후 근무가 시작됩니다.' : 
+                            '직접승인 공고입니다. 관리자 승인 후 보증금 결제가 가능합니다.'
+                        }
+                    </p>
+                    <button class="apply-btn" id="mainApplyButton" ${canApply ? `onclick="handleApplyClick(${job.id}, ${job.auto_approval})"` : 'disabled'}>
+                        ${canApply ? '지원하기' : statusText}
+                    </button>
+                    ${!canApply ? `<p style="color: #dc3545; margin-top: 1rem; font-size: 0.9rem;">이 공고는 더 이상 신청할 수 없습니다.</p>` : ''}
+                </div>
+            `;
+
+            document.getElementById('jobDetail').innerHTML = html;
+            
+            // 지원 상태 확인 및 버튼 업데이트
+            checkApplicationStatusAndUpdateButton(job.id, job.auto_approval, canApply, statusText);
+        }
+
+        // 오류 표시
+        function showError(message) {
+            document.getElementById('jobDetail').innerHTML = `
+                <div class="error">
+                    <h3>오류 발생</h3>
+                    <p>${message}</p>
+                    <button onclick="history.back()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        이전 페이지로
+                    </button>
+                </div>
+            `;
+        }
+
+        // 채용 공고 지원
+        async function applyToJob(jobId) {
+            if (!currentUser) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+
+            if (!confirm('이 공고에 지원하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch(`/api/jobs/${jobId}/apply`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    
+                    // 자동 승인이고 결제 URL이 있는 경우 결제 페이지로 이동
+                    if (result.auto_approved && result.payment_url) {
+                        if (confirm('자동으로 승인되었습니다! 지금 보증금을 결제하시겠습니까?')) {
+                            window.open(result.payment_url, '_self');
+                        }
+                    } else if (!result.auto_approved) {
+                        alert('관리자 승인 후 보증금 결제가 가능합니다.');
+                    }
+                    
+                    // 상세 정보 새로고침
+                    loadJobDetail();
+                } else {
+                    alert(result.detail || '지원 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Apply error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            console.log('Logout function called');
+            try {
+                localStorage.removeItem('employee_token');
+                localStorage.removeItem('admin_token');
+                localStorage.clear(); // 모든 토큰 제거
+                console.log('Tokens cleared, redirecting to login...');
+                window.location.href = '/login';
+            } catch (error) {
+                console.error('Logout error:', error);
+                // 오류가 발생해도 로그인 페이지로 이동
+                window.location.href = '/login';
+            }
+        }
+        
+        // 추가 이벤트 리스너로 로그아웃 버튼 확실히 작동하도록
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Logout button clicked via event listener');
+                    logout();
+                });
+            }
+        });
+    </script>
+    
+    <div style="text-align: center; padding: 2rem 1rem; color: #6c757d; font-size: 0.8rem; border-top: 1px solid #e9ecef; margin-top: 3rem;">
+        © 2025 k-j-hyun & JJPartners. All rights reserved.
+    </div>
+</body>
+</html>

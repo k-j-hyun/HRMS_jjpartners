@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - 나의 신청 목록</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: #212529;
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .application-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .application-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .application-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+        }
+        
+        .application-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .job-info {
+            flex: 1;
+        }
+        
+        .job-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+        
+        .company-name {
+            color: #495057;
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .work-address {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            min-width: 80px;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status-approved {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .status-working {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-completed {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        
+        .application-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+        
+        .detail-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        
+        .detail-value {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .payment-info {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .payment-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .payment-label {
+            font-size: 0.9rem;
+            color: #1976d2;
+            font-weight: 500;
+        }
+        
+        .payment-amount {
+            font-weight: 600;
+            color: #1976d2;
+        }
+        
+        .payment-check {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f3f4;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #495057;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #343a40;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-info {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+        
+        .empty-state p {
+            margin-bottom: 2rem;
+        }
+        
+        .work-progress {
+            background: #fff3cd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .progress-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-details {
+            font-size: 0.9rem;
+            color: #856404;
+        }
+        
+        @media (max-width: 768px) {
+            .application-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .application-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="title">HRMS - 나의 신청 목록</div>
+            <div class="nav-buttons">
+                <a href="/jobs" class="nav-btn">채용 게시판</a>
+                <a href="/employee" class="nav-btn">근태관리</a>
+                <button onclick="logout()" class="nav-btn">로그아웃</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="application-list" id="applicationList">
+            <div class="loading">신청 목록을 불러오는 중...</div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; padding: 2rem 1rem; color: #6c757d; font-size: 0.8rem; border-top: 1px solid #e9ecef; margin-top: 3rem;">
+        © 2025 k-j-hyun & JJPartners. All rights reserved.
+    </div>
+
+    <script>
+        let isLoggedIn = false;
+        let currentUser = null;
+
+        // 페이지 로드 시 초기화
+        window.onload = function() {
+            checkAuth();
+            loadApplications();
+        };
+
+        // 인증 확인
+        function checkAuth() {
+            const token = localStorage.getItem('employee_token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            fetch('/api/auth/verify', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Token invalid');
+                }
+                return response.json();
+            })
+            .then(user => {
+                currentUser = user;
+                isLoggedIn = true;
+            })
+            .catch(error => {
+                localStorage.removeItem('employee_token');
+                window.location.href = '/login';
+            });
+        }
+
+        // 신청 목록 로드
+        async function loadApplications() {
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch('/api/my-applications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayApplications(data.applications);
+                } else {
+                    document.getElementById('applicationList').innerHTML = '<div class="loading">신청 목록을 불러올 수 없습니다.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading applications:', error);
+                document.getElementById('applicationList').innerHTML = '<div class="loading">오류가 발생했습니다.</div>';
+            }
+        }
+
+        // 신청 목록 표시
+        function displayApplications(applications) {
+            const applicationList = document.getElementById('applicationList');
+            
+            if (applications.length === 0) {
+                applicationList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>아직 신청한 일자리가 없습니다</h3>
+                        <p>채용 게시판에서 관심 있는 일자리에 지원해보세요!</p>
+                        <a href="/jobs" class="btn btn-primary">채용 게시판 보기</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            applications.forEach(app => {
+                const statusText = getStatusText(app.status);
+                const statusClass = `status-${app.status}`;
+                const appliedDate = new Date(app.applied_at).toLocaleDateString('ko-KR');
+                
+                html += `
+                    <div class="application-card">
+                        <div class="application-header">
+                            <div class="job-info">
+                                <div class="job-title">${app.job_post.title}</div>
+                                <div class="company-name">${app.job_post.company_name}</div>
+                                <div class="work-address">위치: ${app.job_post.work_address}</div>
+                            </div>
+                            <div class="status-badge ${statusClass}">${statusText}</div>
+                        </div>
+                        
+                        <div class="application-details">
+                            <div class="detail-item">
+                                <div class="detail-label">신청일</div>
+                                <div class="detail-value">${appliedDate}</div>
+                            </div>
+                            ${app.work_start_date ? `
+                                <div class="detail-item">
+                                    <div class="detail-label">근무 시작일</div>
+                                    <div class="detail-value">${new Date(app.work_start_date).toLocaleDateString('ko-KR')}</div>
+                                </div>
+                            ` : ''}
+                            ${app.work_end_date ? `
+                                <div class="detail-item">
+                                    <div class="detail-label">근무 종료일</div>
+                                    <div class="detail-value">${new Date(app.work_end_date).toLocaleDateString('ko-KR')}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="payment-info">
+                            <div class="payment-status">
+                                <span class="payment-label">보증금 (${app.deposit_amount || 5000}원)</span>
+                                <span class="payment-amount">${app.deposit_paid ? '결제완료' : (app.status === 'approved' ? '결제필요' : '결제대기')}</span>
+                            </div>
+                            <div class="payment-check">
+                                ${app.deposit_refunded ? '환불완료' : app.deposit_paid ? '결제완료 (근무완료 시 환불)' : (app.status === 'approved' ? '승인완료 - 결제필요' : app.status === 'pending' ? '승인대기중' : '결제대기')}
+                            </div>
+                        </div>
+                        
+                        ${app.status === 'working' ? `
+                            <div class="work-progress">
+                                <div class="progress-title">현재 근무 중</div>
+                                <div class="progress-details">
+                                    ${app.work_start_date ? `${new Date(app.work_start_date).toLocaleDateString('ko-KR')}부터 근무 중입니다.` : ''}
+                                    근무 완료 시 보증금이 자동으로 환불됩니다.
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="action-buttons">
+                            ${getActionButtons(app)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            applicationList.innerHTML = html;
+        }
+
+        // 상태 텍스트 변환
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '대기중',
+                'approved': '승인됨',
+                'working': '근무중',
+                'completed': '완료됨',
+                'rejected': '거절됨'
+            };
+            return statusMap[status] || status;
+        }
+
+        // 액션 버튼 생성
+        function getActionButtons(app) {
+            let buttons = '';
+            
+            // 채용 공고 보기 버튼
+            buttons += `<a href="/jobs/${app.job_post.id}" class="btn btn-info">공고 보기</a>`;
+            
+            // 위치 선택 버튼 (승인된 경우에만)
+            if (app.status === 'approved' && app.deposit_paid) {
+                const isSelected = localStorage.getItem('selectedWorkLocation') === app.id.toString();
+                if (isSelected) {
+                    buttons += `<button class="btn btn-warning" onclick="unselectLocation()">선택 취소</button>`;
+                } else {
+                    buttons += `<button class="btn btn-success" onclick="selectLocation(${app.id})">위치 선택</button>`;
+                }
+            }
+            
+            // 신청 취소 버튼 (특정 상태에서만 표시)
+            if (app.status === 'pending' || (app.status === 'approved' && !app.deposit_paid)) {
+                buttons += `<button class="btn btn-danger" onclick="cancelApplication(${app.id})">신청 취소</button>`;
+            }
+
+            // 상태별 액션 버튼
+            switch (app.status) {
+                case 'pending':
+                    // 보증금 결제 버튼은 대기중일 때도 표시 (관리자 승인 대기)
+                    buttons += `<span class="btn btn-secondary" style="opacity: 0.6;">승인 대기중</span>`;
+                    break;
+                    
+                case 'approved':
+                    // 승인된 경우 보증금 결제 버튼 표시
+                    if (!app.deposit_paid) {
+                        buttons += `<button class="btn btn-primary" onclick="payDeposit(${app.id})">보증금 결제</button>`;
+                    } else {
+                        buttons += `<button class="btn btn-success" onclick="startWork(${app.id})">근무 시작</button>`;
+                    }
+                    break;
+                    
+                case 'working':
+                    buttons += `<button class="btn btn-success" onclick="completeWork(${app.id})">근무 완료</button>`;
+                    break;
+                    
+                case 'completed':
+                    if (!app.deposit_refunded) {
+                        buttons += `<span class="btn btn-secondary" style="opacity: 0.6;">환불 처리중</span>`;
+                    } else {
+                        buttons += `<span class="btn btn-secondary" style="opacity: 0.6;">환불 완료</span>`;
+                    }
+                    break;
+                    
+                case 'rejected':
+                    buttons += `<span class="btn btn-secondary" style="opacity: 0.6;">신청 거절됨</span>`;
+                    break;
+            }
+            
+            return buttons;
+        }
+
+        // 보증금 결제
+        async function payDeposit(applicationId) {
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch(`/api/payment/start/${applicationId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // 결제 페이지로 이동
+                    window.location.href = result.payment_url || `/payment/complete?applicationId=${applicationId}&status=success`;
+                    
+                } else {
+                    alert(result.message || '결제 시작 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('결제 처리 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 근무 시작
+        async function startWork(applicationId) {
+            if (!confirm('근무를 시작하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('employee_token');
+                // 여기서는 간단히 페이지 새로고침만 함
+                // 실제로는 별도의 API 엔드포인트가 필요
+                alert('근무가 시작되었습니다. 출근 체크를 위해 근무지로 이동해주세요.');
+                loadApplications();
+            } catch (error) {
+                console.error('Start work error:', error);
+                alert('근무 시작 처리 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 근무 완료
+        async function completeWork(applicationId) {
+            if (!confirm('근무를 완료하시겠습니까? 완료 후 보증금이 환불됩니다.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch(`/api/work-complete/${applicationId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    loadApplications(); // 목록 새로고침
+                } else {
+                    alert(result.detail || '근무 완료 처리 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Complete work error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+        
+        // 위치 선택
+        function selectLocation(applicationId) {
+            if (!confirm('이 근무지를 선택하시겠습니까? 한 번에 하나의 근무지만 선택할 수 있습니다.')) {
+                return;
+            }
+            
+            // 기존 선택 제거
+            localStorage.removeItem('selectedWorkLocation');
+            
+            // 새로운 선택 저장
+            localStorage.setItem('selectedWorkLocation', applicationId.toString());
+            
+            // 선택된 근무지 정보 저장
+            const selectedApp = applications.find(app => app.id === applicationId);
+            if (selectedApp) {
+                const locationInfo = {
+                    applicationId: applicationId,
+                    jobTitle: selectedApp.job_post.title,
+                    companyName: selectedApp.job_post.company_name,
+                    workAddress: selectedApp.job_post.work_address,
+                    workHours: selectedApp.job_post.work_hours,
+                    salary: selectedApp.job_post.salary
+                };
+                localStorage.setItem('selectedLocationInfo', JSON.stringify(locationInfo));
+            }
+            
+            alert('근무지가 선택되었습니다.');
+            loadApplications(); // 버튼 상태 업데이트를 위해 새로고침
+        }
+        
+        // 위치 선택 취소
+        function unselectLocation() {
+            if (!confirm('근무지 선택을 취소하시겠습니까?')) {
+                return;
+            }
+            
+            localStorage.removeItem('selectedWorkLocation');
+            localStorage.removeItem('selectedLocationInfo');
+            
+            alert('근무지 선택이 취소되었습니다.');
+            loadApplications(); // 버튼 상태 업데이트를 위해 새로고침
+        }
+
+        // 신청 취소
+        async function cancelApplication(applicationId) {
+            if (!confirm('정말로 이 신청을 취소하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('employee_token');
+                const response = await fetch(`/api/my-applications/${applicationId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert(result.message);
+                    loadApplications(); // 목록 새로고침
+                } else {
+                    alert(result.detail || '신청 취소 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error('Cancel application error:', error);
+                alert('서버 연결에 실패했습니다.');
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            console.log('Logout function called');
+            try {
+                localStorage.removeItem('employee_token');
+                localStorage.removeItem('admin_token');
+                localStorage.clear(); // 모든 토큰 제거
+                console.log('Tokens cleared, redirecting to login...');
+                window.location.href = '/login';
+            } catch (error) {
+                console.error('Logout error:', error);
+                // 오류가 발생해도 로그인 페이지로 이동
+                window.location.href = '/login';
+            }
+        }
+    </script>
+</body>
+</html>

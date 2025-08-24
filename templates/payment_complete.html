@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - 결제 완료</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .payment-result {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .success-title {
+            color: #28a745;
+        }
+        
+        .error-title {
+            color: #dc3545;
+        }
+        
+        .result-message {
+            color: #6c757d;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .payment-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .payment-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .payment-info-item:last-child {
+            margin-bottom: 0;
+            padding-top: 0.5rem;
+            border-top: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #495057;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.3s;
+            margin: 0.25rem;
+        }
+        
+        .btn:hover {
+            background: #343a40;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="payment-result">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>결제 결과를 확인하고 있습니다...</p>
+            </div>
+            
+            <div id="result" style="display: none;">
+                <div id="success-result" style="display: none;">
+                    <div class="success-icon">✅</div>
+                    <h2 class="result-title success-title">결제 완료</h2>
+                    <p class="result-message">
+                        보증금이 성공적으로 결제되었습니다.<br>
+                        이제 근무지에 출근하여 근무를 시작하세요.<br>
+                        근무 완료 시 보증금이 자동으로 환불됩니다.
+                    </p>
+                    
+                    <div class="payment-info" id="paymentInfo">
+                        <!-- 결제 정보가 여기에 표시됩니다 -->
+                    </div>
+                    
+                    <div>
+                        <a href="/my-applications" class="btn btn-primary">나의 신청 보기</a>
+                        <a href="/employee" class="btn">근태관리</a>
+                    </div>
+                </div>
+                
+                <div id="error-result" style="display: none;">
+                    <div class="error-icon">❌</div>
+                    <h2 class="result-title error-title">결제 실패</h2>
+                    <p class="result-message" id="errorMessage">
+                        결제 처리 중 오류가 발생했습니다.<br>
+                        다시 시도해주세요.
+                    </p>
+                    
+                    <div>
+                        <a href="/my-applications" class="btn btn-primary">다시 시도</a>
+                        <a href="/jobs" class="btn">채용 게시판</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // URL 파라미터에서 결제 결과 확인
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const paymentId = urlParams.get('paymentId');
+            const applicationId = urlParams.get('applicationId');
+            
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+                
+                if (status === 'success') {
+                    showSuccess(paymentId, applicationId);
+                } else {
+                    showError(urlParams.get('message') || '결제가 취소되거나 실패했습니다.');
+                }
+            }, 2000); // 2초간 로딩 표시
+        };
+        
+        async function showSuccess(paymentId, applicationId) {
+            document.getElementById('success-result').style.display = 'block';
+            
+            if (paymentId && applicationId) {
+                // 서버에 결제 완료 처리 요청
+                try {
+                    const token = localStorage.getItem('employee_token');
+                    if (token) {
+                        await fetch(`/api/payment/complete/${applicationId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                payment_id: paymentId,
+                                status: 'success'
+                            })
+                        });
+                    }
+                } catch (error) {
+                    console.error('Payment completion update error:', error);
+                }
+                
+                const paymentInfo = document.getElementById('paymentInfo');
+                paymentInfo.innerHTML = `
+                    <div class="payment-info-item">
+                        <span>결제ID:</span>
+                        <span>${paymentId}</span>
+                    </div>
+                    <div class="payment-info-item">
+                        <span>신청번호:</span>
+                        <span>${applicationId}</span>
+                    </div>
+                    <div class="payment-info-item">
+                        <span>결제금액:</span>
+                        <span>5,000원</span>
+                    </div>
+                    <div class="payment-info-item">
+                        <span>결제방법:</span>
+                        <span>네이버페이</span>
+                    </div>
+                `;
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('error-result').style.display = 'block';
+            document.getElementById('errorMessage').innerHTML = message;
+        }
+    </script>
+</body>
+</html>

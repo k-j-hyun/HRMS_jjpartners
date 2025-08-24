@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS 로그인</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#212529">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="HRMS">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            color: #212529;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            color: #212529;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .logo p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #495057;
+            box-shadow: 0 0 0 0.2rem rgba(73, 80, 87, 0.25);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-primary {
+            background: #212529;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #495057;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .role-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .role-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .role-btn.active {
+            border-color: #212529;
+            background: #212529;
+            color: white;
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .forgot-password a {
+            color: #495057;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .alert {
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .demo-accounts {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .demo-account {
+            margin: 0.25rem 0;
+        }
+        
+        .install-prompt {
+            margin-top: 1rem;
+            text-align: center;
+            display: block;
+        }
+        
+        .btn-install {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+        }
+        
+        .btn-install:hover {
+            background: linear-gradient(45deg, #45a049, #4CAF50);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>HRMS</h1>
+            <p>인력관리 시스템</p>
+        </div>
+        
+        <div id="alertContainer"></div>
+        
+        <form id="loginForm">
+            <div class="role-selector">
+                <button type="button" class="role-btn active" data-role="employee">직원</button>
+                <button type="button" class="role-btn" data-role="admin">관리자</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">사용자명</label>
+                <input type="text" class="form-input" id="username" name="username" required 
+                       placeholder="사용자명을 입력하세요" autocomplete="username">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">비밀번호</label>
+                <input type="password" class="form-input" id="password" name="password" required 
+                       placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="loginBtn">
+                로그인
+            </button>
+        </form>
+        
+        <!-- 사용 방법 수정 등 -->
+        <div class="forgot-password">
+            <a href="/register">계정이 없으신가요? 회원가입</a>
+        </div>
+        
+        <div class="demo-accounts">
+            <strong>사용 방법:</strong><br>
+            <div class="demo-account">공고를 선택하고 승인 후 출근하세요</div>
+            <div class="demo-account">보증금을 결제하고 출근하면 자동 환불됩니다</div>
+            <div class="demo-account">관련문의 : JJPartners</div>
+            <div class="demo-account">개발문의 : spellrain@naver.com</div>
+        </div>
+        
+        <!-- PWA 설치 버튼 -->
+        <div id="installPrompt" class="install-prompt">
+            <button id="installBtn" class="btn-install">앱 설치하기</button>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e9ecef; font-size: 0.8rem; color: #6c757d;">
+            © 2025 k-j-hyun & JJPartners. All rights reserved.
+        </div>
+    </div>
+
+    <script>
+        let selectedRole = 'employee';
+        
+        // 역할 선택 버튼 이벤트
+        document.querySelectorAll('.role-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedRole = this.dataset.role;
+            });
+        });
+        
+        // 로그인 폼 이벤트
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (!username || !password) {
+                showAlert('사용자명과 비밀번호를 입력해주세요.', 'danger');
+                return;
+            }
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = '로그인 중...';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        role: selectedRole
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // 토큰 저장
+                    if (selectedRole === 'admin') {
+                        localStorage.setItem('admin_token', result.access_token);
+                        window.location.href = '/admin';
+                    } else {
+                        localStorage.setItem('employee_token', result.access_token);
+                        window.location.href = '/employee';
+                    }
+                } else {
+                    showAlert(result.detail || '로그인에 실패했습니다.', 'danger');
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('서버 연결에 실패했습니다.', 'danger');
+            }
+            
+            loginBtn.disabled = false;
+            loginBtn.textContent = '로그인';
+        });
+        
+        // 알림 표시
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+        
+        // PWA 설치 프롬프트
+        let deferredPrompt;
+        const installPrompt = document.getElementById('installPrompt');
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installPrompt.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                if (outcome === 'accepted') {
+                    installPrompt.style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                // PWA 설치 프롬프트가 없는 경우 (이미 설치된 경우 등)
+                alert('이미 앱이 설치되었거나 브라우저에서 PWA 설치를 지원하지 않습니다.');
+            }
+        });
+
+        // 이미 설치된 경우에만 숨기기 (설치 완료 후)
+        window.addEventListener('appinstalled', () => {
+            installPrompt.style.display = 'none';
+            alert('앱이 성공적으로 설치되었습니다!');
+        });
+
+        // Service Worker 등록
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(registration => console.log('SW registered:', registration))
+                .catch(error => console.log('SW registration failed:', error));
+        }
+        
+        // 기존 로그인 확인
+        window.onload = function() {
+            const adminToken = localStorage.getItem('admin_token');
+            const employeeToken = localStorage.getItem('employee_token');
+            
+            if (adminToken) {
+                window.location.href = '/admin';
+            } else if (employeeToken) {
+                window.location.href = '/employee';
+            }
+        };
+    </script>
+</body>
+</html>

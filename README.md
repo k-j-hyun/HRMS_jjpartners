@@ -121,7 +121,7 @@ python main.py
 ## 디렉토리 구조
 
 ```
-flowmate/
+HRMS_kjh/
 ├── app/
 │   ├── models/
 │   │   └── database.py          # 데이터베이스 모델

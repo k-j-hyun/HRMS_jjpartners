@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'flowmate-v1.0.0';
+const CACHE_NAME = 'HRMS_kjh-v1.0.0';
 const urlsToCache = [
   '/',
   '/employee',
@@ -53,7 +53,7 @@ self.addEventListener('activate', event => {
 // Push notification event
 self.addEventListener('push', event => {
   const options = {
-    body: event.data ? event.data.text() : 'FlowMate 알림',
+    body: event.data ? event.data.text() : 'HRMS_kjh 알림',
     icon: '/static/icon-192.png',
     badge: '/static/icon-192.png',
     vibrate: [100, 50, 100],
@@ -76,6 +76,6 @@ self.addEventListener('push', event => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('FlowMate', options)
+    self.registration.showNotification('HRMS_kjh', options)
   );
 });

@@ -1,6 +1,6 @@
 {
-  "name": "FlowMate HRMS",
-  "short_name": "FlowMate",
+  "name": "HRMS",
+  "short_name": "HRMS_kjh",
   "description": "인력관리 및 근태관리 시스템",
   "start_url": "/",
   "display": "standalone",

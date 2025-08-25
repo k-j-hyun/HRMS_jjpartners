@@ -224,12 +224,6 @@
                 <label class="form-label">부서</label>
                 <select class="form-select" id="department" name="department">
                     <option value="">부서 선택</option>
-                    <option value="개발팀">개발팀</option>
-                    <option value="영업팀">영업팀</option>
-                    <option value="마케팅팀">마케팅팀</option>
-                    <option value="인사팀">인사팀</option>
-                    <option value="재무팀">재무팀</option>
-                    <option value="기타">기타</option>
                 </select>
             </div>
             
@@ -377,6 +371,37 @@
         function goToLogin() {
             window.location.href = '/login';
         }
+
+        // 부서 목록 로드
+        async function loadDepartments() {
+            try {
+                const response = await fetch('/api/departments');
+                if (response.ok) {
+                    const departments = await response.json();
+                    const departmentSelect = document.getElementById('department');
+                    
+                    // 기존 옵션들 제거 (부서 선택 옵션 제외)
+                    departmentSelect.innerHTML = '<option value="">부서 선택</option>';
+                    
+                    // 새 부서 옵션들 추가
+                    departments.forEach(dept => {
+                        const option = document.createElement('option');
+                        option.value = dept.name;
+                        option.textContent = dept.name;
+                        departmentSelect.appendChild(option);
+                    });
+                } else {
+                    console.error('부서 목록 로드 실패');
+                }
+            } catch (error) {
+                console.error('부서 목록 로드 중 오류:', error);
+            }
+        }
+
+        // 페이지 로드 시 부서 목록 로드
+        window.addEventListener('load', function() {
+            loadDepartments();
+        });
     </script>
 </body>
 </html>

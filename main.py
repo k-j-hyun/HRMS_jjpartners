@@ -7,6 +7,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from datetime import datetime, timedelta
 import uvicorn
+import logging
+
+# 로깅 설정
+logger = logging.getLogger(__name__)
 
 # 앱 모듈 import
 from app.models.database import get_db, User, Employee, AttendanceRecord, LocationEvent, JobPost, JobApplication, PaymentLog, Department, Violation
@@ -316,11 +320,18 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         if not employee_number:
             employee_number = f"EMP{new_user.id:04d}"
         
+        # 부서 ID 찾기
+        department_id = None
+        if register_data.department:
+            department = db.query(Department).filter(Department.name == register_data.department).first()
+            if department:
+                department_id = department.id
+        
         # 직원 프로필 생성
         new_employee = Employee(
             user_id=new_user.id,
             employee_number=employee_number,
-            department_id=None,  # 부서는 나중에 관리자가 할당
+            department_id=department_id,
             position=register_data.position,
             hire_date=datetime.now(),
             phone=register_data.phone,
@@ -468,6 +479,7 @@ async def get_employee_detail(
         "employee": {
             "id": employee.id,
             "employee_number": employee.employee_number,
+            "username": user.username,
             "full_name": user.full_name,
             "email": user.email,
             "department": employee.department.name if employee.department else None, # 부서명 (없으면 None)
@@ -503,7 +515,7 @@ async def get_employee_detail(
         ]
     }
 
-# 부서 목록 API
+# 부서 목록 API (관리자용)
 @app.get("/api/admin/departments")
 async def get_departments(
     current_user: User = Depends(require_manager_or_admin),
@@ -522,6 +534,22 @@ async def get_departments(
         ]
     except Exception as e:
         print(f"Departments API error: {e}")
+        return []
+
+# 부서 목록 API (회원가입용 - 인증 불필요)
+@app.get("/api/departments")
+async def get_public_departments(db: Session = Depends(get_db)):
+    """회원가입용 부서 목록 조회 (인증 불필요)"""
+    try:
+        departments = db.query(Department).all()
+        return [
+            {
+                "id": dept.id,
+                "name": dept.name
+            } for dept in departments
+        ]
+    except Exception as e:
+        print(f"Public departments API error: {e}")
         return []
 
 @app.post("/api/admin/departments")
@@ -1056,14 +1084,21 @@ async def update_employee(
         # 업데이트할 필드들
         if employee_data.get('employee_number'):
             employee.employee_number = employee_data['employee_number']
+        if employee_data.get('username'):
+            # 사용자명 중복 확인
+            existing_user = db.query(User).filter(
+                User.username == employee_data['username'],
+                User.id != user.id
+            ).first()
+            if existing_user:
+                raise HTTPException(status_code=400, detail="이미 존재하는 사용자명입니다.")
+            user.username = employee_data['username']
         if employee_data.get('full_name'):
-            employee.full_name = employee_data['full_name']
-            user.full_name = employee_data['full_name']  # User 테이블도 함께 업데이트
+            user.full_name = employee_data['full_name']  # User 테이블의 full_name 필드 업데이트
         if employee_data.get('email') is not None:
-            employee.email = employee_data['email']
-            user.email = employee_data['email']  # User 테이블도 함께 업데이트
+            user.email = employee_data['email']  # User 테이블의 email 필드 업데이트
         if employee_data.get('phone_number') is not None:
-            employee.phone_number = employee_data['phone_number']
+            employee.phone = employee_data['phone_number']  # Employee 테이블의 phone 필드 업데이트
         if employee_data.get('department_id') is not None:
             # 부서 존재 확인
             if employee_data['department_id']:
@@ -1088,16 +1123,15 @@ async def update_employee(
         
         return {
             "success": True,
-            "message": f"{employee.full_name}님의 정보가 성공적으로 업데이트되었습니다.",
+            "message": f"{user.full_name}님의 정보가 성공적으로 업데이트되었습니다.",
             "employee": {
                 "id": employee.id,
                 "employee_number": employee.employee_number,
-                "full_name": employee.full_name,
-                "email": employee.email,
-                "phone_number": employee.phone_number,
+                "full_name": user.full_name,
+                "email": user.email,
+                "phone_number": employee.phone,
                 "department_id": employee.department_id,
                 "position": employee.position,
-                "salary": employee.salary,
                 "hire_date": employee.hire_date.isoformat() if employee.hire_date else None
             }
         }
@@ -1108,6 +1142,42 @@ async def update_employee(
         db.rollback()
         logger.error(f"Error updating employee {employee_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"직원 정보 업데이트 중 오류가 발생했습니다: {str(e)}")
+
+@app.post("/api/admin/employees/{employee_id}/reset-password")
+async def reset_employee_password(
+    employee_id: int,
+    current_user: User = Depends(require_manager_or_admin),
+    db: Session = Depends(get_db)
+):
+    """직원 비밀번호 초기화"""
+    from app.models.database import get_password_hash
+    try:
+        # 직원 정보 조회
+        employee = db.query(Employee).filter(Employee.id == employee_id).first()
+        if not employee:
+            raise HTTPException(status_code=404, detail="직원을 찾을 수 없습니다.")
+        
+        # 해당 직원의 사용자 계정 조회
+        user = db.query(User).filter(User.id == employee.user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자 계정을 찾을 수 없습니다.")
+        
+        # 비밀번호를 'abcd1234'로 초기화
+        default_password = "abcd1234"
+        user.hashed_password = get_password_hash(default_password)
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": f"{user.full_name}님의 비밀번호가 초기화되었습니다. (초기 비밀번호: {default_password})"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"비밀번호 초기화 중 오류가 발생했습니다: {str(e)}")
 
 # 직원 API
 @app.get("/api/employee/status")

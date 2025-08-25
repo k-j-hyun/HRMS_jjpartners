@@ -1045,6 +1045,12 @@
                                     </div>
                                     
                                     <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">사용자명</label>
+                                        <input type="text" name="username" value="${employee.username || ''}" 
+                                               style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;" required>
+                                    </div>
+                                    
+                                    <div>
                                         <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">이름</label>
                                         <input type="text" name="full_name" value="${employee.full_name}" 
                                                style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;" required>
@@ -1057,7 +1063,7 @@
                                     </div>
                                     
                                     <div>
-                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">전화번호</label>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">연락처</label>
                                         <input type="tel" name="phone_number" value="${employee.phone || ''}" 
                                                style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
                                     </div>
@@ -1089,10 +1095,14 @@
                                     </div>
                                 </div>
                                 
-                                <div style="text-align: right; gap: 0.5rem; display: flex; justify-content: flex-end;">
-                                    <button type="button" class="btn" onclick="closeModal()" 
-                                            style="background: #6c757d; color: white; margin-right: 0.5rem;">취소</button>
-                                    <button type="submit" class="btn btn-primary">수정 완료</button>
+                                <div style="text-align: right; gap: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                                    <button type="button" class="btn" onclick="resetPassword(${employeeId})" 
+                                            style="background: #dc3545; color: white;">비밀번호 초기화</button>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button type="button" class="btn" onclick="closeModal()" 
+                                                style="background: #6c757d; color: white;">취소</button>
+                                        <button type="submit" class="btn btn-primary">수정 완료</button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -1114,6 +1124,7 @@
             const formData = new FormData(event.target);
             const employeeData = {
                 employee_number: formData.get('employee_number')?.trim(),
+                username: formData.get('username')?.trim(),
                 full_name: formData.get('full_name')?.trim(),
                 email: formData.get('email')?.trim() || null,
                 phone_number: formData.get('phone_number')?.trim() || null,
@@ -1124,8 +1135,8 @@
             };
 
             // 유효성 검사
-            if (!employeeData.employee_number || !employeeData.full_name) {
-                alert('직원번호와 이름은 필수 입력 항목입니다.');
+            if (!employeeData.employee_number || !employeeData.username || !employeeData.full_name) {
+                alert('직원번호, 사용자명, 이름은 필수 입력 항목입니다.');
                 return;
             }
 
@@ -1166,6 +1177,34 @@
                 // 버튼 다시 활성화
                 submitButton.disabled = false;
                 submitButton.textContent = originalText;
+            }
+        }
+
+        // 비밀번호 초기화
+        async function resetPassword(employeeId) {
+            if (!confirm('비밀번호를 초기화하시겠습니까? (초기 비밀번호: abcd1234)')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/employees/${employeeId}/reset-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert(result.message);
+                } else {
+                    alert('비밀번호 초기화에 실패했습니다: ' + (result.detail || result.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Password reset error:', error);
+                alert('서버 연결에 실패했습니다.');
             }
         }
 
